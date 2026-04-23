@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@import "../styles/theme.css";
+
+@theme inline {
+  --color-gold: #d7ad67;
+  --color-gold-soft: #f1c979;
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+}
+
+body {
+  background: #080d12;
+  color: #f4efe8;
+}
+
+::selection {
+  background: rgba(215, 173, 103, 0.32);
+}
