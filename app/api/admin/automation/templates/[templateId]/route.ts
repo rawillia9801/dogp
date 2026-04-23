@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOptionalAdminOrganization } from "@/lib/auth";
+import { getOptionalAdminOrganization, getSubscriptionForOrganization } from "@/lib/auth";
 import { updateEmailTemplate } from "@/lib/automation-service";
+import { hasFeatureAccess } from "@/lib/upgrade";
+import { logUpgradeEvent } from "@/lib/upgrade-service";
 
 type TemplatePayload = {
   subject?: string;
@@ -14,6 +16,21 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ t
 
   if (!organization) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const subscription = await getSubscriptionForOrganization(organization.id);
+
+  if (!hasFeatureAccess(subscription.planKey, "automation")) {
+    await logUpgradeEvent({
+      organizationId: organization.id,
+      triggerType: "feature_lock_click",
+      sourceArea: "/api/admin/automation/templates",
+      currentPlan: subscription.planName,
+      suggestedPlan: "Professional",
+      metadata: { featureKey: "automation" },
+    });
+
+    return NextResponse.json({ error: "Automation is available in the Professional plan." }, { status: 403 });
   }
 
   const { templateId } = await context.params;

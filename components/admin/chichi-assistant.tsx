@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { MessageSquareHeart, Send, Sparkles, X } from "lucide-react";
+import type { SubscriptionContext } from "@/lib/auth";
 import { StatusPill } from "@/components/admin/workspace-ui";
 
 type ChiChiMessage = {
@@ -12,7 +13,7 @@ type ChiChiMessage = {
   actions?: Array<{ type: string; label: string; route?: string }>;
 };
 
-export function ChiChiAssistant() {
+export function ChiChiAssistant({ subscription }: { subscription: SubscriptionContext }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [input, setInput] = useState("");
@@ -20,7 +21,10 @@ export function ChiChiAssistant() {
     {
       id: "intro",
       role: "assistant",
-      text: "ChiChi can answer buyer balance questions, summarize breeder activity, open the AI document generator, and surface overdue payments from your live workspace.",
+      text:
+        subscription.planKey === "elite"
+          ? "ChiChi can answer buyer balance questions, summarize breeder activity, open the AI document generator, and surface overdue payments from your live workspace."
+          : "ChiChi is available with Premium for breeder-specific AI workflows, account summaries, and AI-assisted document and website actions.",
     },
   ]);
 

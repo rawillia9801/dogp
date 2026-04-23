@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentType } from "react";
+import { useMemo, useState, type ComponentType } from "react";
 import {
   BadgeDollarSign,
   BellRing,
@@ -21,7 +21,12 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
+import type { SubscriptionContext } from "@/lib/auth";
+import type { FeatureKey } from "@/lib/upgrade";
+import { getUpgradeCopy, hasFeatureAccess } from "@/lib/upgrade";
 import { cn } from "@/lib/utils";
+import { UpgradeModal } from "@/components/admin/upgrade-modal";
+import { logUpgradeEvent } from "@/components/admin/upgrade-prompt";
 
 type NavState = "available" | "locked";
 
@@ -30,6 +35,7 @@ type NavItem = {
   href: string;
   icon: ComponentType<{ className?: string }>;
   description: string;
+  featureKey: FeatureKey;
   state?: NavState;
 };
 
@@ -42,40 +48,47 @@ const sections: NavSection[] = [
   {
     label: "Breeder Operations",
     items: [
-      { label: "Dashboard", href: "/admin", icon: Home, description: "Kennel command" },
-      { label: "Dogs", href: "/admin/dogs", icon: PawPrint, description: "Program roster" },
-      { label: "Breeding Program", href: "/admin/breeding-program", icon: Route, description: "Pairing engine" },
-      { label: "Litters", href: "/admin/litters", icon: FolderOpen, description: "Litter control" },
-      { label: "Puppies", href: "/admin/puppies", icon: ShieldCheck, description: "Placement pipeline" },
+      { label: "Dashboard", href: "/admin", icon: Home, description: "Kennel command", featureKey: "dashboard" },
+      { label: "Dogs", href: "/admin/dogs", icon: PawPrint, description: "Program roster", featureKey: "dogs" },
+      { label: "Breeding Program", href: "/admin/breeding-program", icon: Route, description: "Pairing engine", featureKey: "breeding_program" },
+      { label: "Litters", href: "/admin/litters", icon: FolderOpen, description: "Litter control", featureKey: "litters" },
+      { label: "Puppies", href: "/admin/puppies", icon: ShieldCheck, description: "Placement pipeline", featureKey: "puppies" },
     ],
   },
   {
     label: "Business Operations",
     items: [
-      { label: "Buyers", href: "/admin/buyers", icon: Users, description: "Buyer files" },
-      { label: "Applications", href: "/admin/applications", icon: ClipboardCheck, description: "Intake review" },
-      { label: "Payments", href: "/admin/payments", icon: BadgeDollarSign, description: "Account control" },
-      { label: "Documents", href: "/admin/documents", icon: FileText, description: "Contracts and files" },
-      { label: "Website Builder", href: "/admin/website-builder", icon: Globe2, description: "Breeder site copy" },
-      { label: "Transportation", href: "/admin/transportation", icon: Car, description: "Delivery logistics" },
-      { label: "Automation", href: "/admin/automation", icon: BellRing, description: "Workflow notices" },
+      { label: "Buyers", href: "/admin/buyers", icon: Users, description: "Buyer files", featureKey: "buyers" },
+      { label: "Applications", href: "/admin/applications", icon: ClipboardCheck, description: "Intake review", featureKey: "applications" },
+      { label: "Payments", href: "/admin/payments", icon: BadgeDollarSign, description: "Account control", featureKey: "payments" },
+      { label: "Documents", href: "/admin/documents", icon: FileText, description: "Contracts and files", featureKey: "documents" },
+      { label: "Website Builder", href: "/admin/website-builder", icon: Globe2, description: "Breeder site copy", featureKey: "website_builder" },
+      { label: "Transportation", href: "/admin/transportation", icon: Car, description: "Delivery logistics", featureKey: "transportation" },
+      { label: "Automation", href: "/admin/automation", icon: BellRing, description: "Workflow notices", featureKey: "automation" },
     ],
   },
   {
     label: "System",
     items: [
-      { label: "Settings", href: "/admin/settings", icon: Settings, description: "Workspace controls" },
-      { label: "Billing", href: "/admin/billing", icon: CreditCard, description: "Plan and invoices" },
+      { label: "Settings", href: "/admin/settings", icon: Settings, description: "Workspace controls", featureKey: "settings" },
+      { label: "Billing", href: "/admin/billing", icon: CreditCard, description: "Plan and invoices", featureKey: "billing" },
     ],
   },
 ];
 
-export function AdminNavigation() {
+export function AdminNavigation({ subscription }: { subscription: SubscriptionContext }) {
   const pathname = usePathname();
+  const [activeItem, setActiveItem] = useState<NavItem | null>(null);
+
+  const modalCopy = useMemo(
+    () => (activeItem ? getUpgradeCopy(activeItem.featureKey) : null),
+    [activeItem],
+  );
 
   return (
-    <nav className="flex-1 space-y-5">
-      {sections.map((section) => (
+    <>
+      <nav className="flex-1 space-y-5">
+        {sections.map((section) => (
         <section key={section.label} className="space-y-2">
           <div className="flex items-center gap-3 px-2">
             <div className="h-px flex-1 bg-gradient-to-r from-white/[0.16] to-white/[0.02]" />
@@ -87,7 +100,7 @@ export function AdminNavigation() {
           <div className="space-y-1.5">
             {section.items.map((item) => {
               const Icon = item.icon;
-              const locked = item.state === "locked";
+              const locked = item.state === "locked" || !hasFeatureAccess(subscription.planKey, item.featureKey);
               const active = !locked && isActive(pathname, item.href);
 
               const content = (
@@ -162,7 +175,16 @@ export function AdminNavigation() {
                   <button
                     key={item.label}
                     type="button"
-                    aria-disabled="true"
+                    onClick={() => {
+                      logUpgradeEvent({
+                        triggerType: "feature_lock_click",
+                        currentPlan: subscription.planKey,
+                        suggestedPlan: getUpgradeCopy(item.featureKey).suggestedPlan,
+                        sourceArea: `admin-navigation:${item.href}`,
+                        featureKey: item.featureKey,
+                      });
+                      setActiveItem(item);
+                    }}
                     className="block w-full"
                   >
                     {content}
@@ -178,8 +200,51 @@ export function AdminNavigation() {
             })}
           </div>
         </section>
-      ))}
-    </nav>
+        ))}
+      </nav>
+
+      {activeItem && modalCopy ? (
+        <UpgradeModal
+          open
+          onClose={() => setActiveItem(null)}
+          title={modalCopy.title}
+          body={modalCopy.body}
+          primaryLabel={modalCopy.primaryLabel}
+          secondaryLabel={modalCopy.secondaryLabel}
+          suggestedPlan={modalCopy.suggestedPlan}
+          currentPlan={subscription.planKey}
+          sourceArea={`admin-navigation:${activeItem.href}`}
+          featureKey={activeItem.featureKey}
+          onOpen={() =>
+            logUpgradeEvent({
+              triggerType: "modal_open",
+              currentPlan: subscription.planKey,
+              suggestedPlan: modalCopy.suggestedPlan,
+              sourceArea: `admin-navigation:${activeItem.href}`,
+              featureKey: activeItem.featureKey,
+            })
+          }
+          onPrimary={() =>
+            logUpgradeEvent({
+              triggerType: "upgrade_cta_click",
+              currentPlan: subscription.planKey,
+              suggestedPlan: modalCopy.suggestedPlan,
+              sourceArea: `admin-navigation:${activeItem.href}`,
+              featureKey: activeItem.featureKey,
+            })
+          }
+          onDismiss={() =>
+            logUpgradeEvent({
+              triggerType: "dismissed_prompt",
+              currentPlan: subscription.planKey,
+              suggestedPlan: modalCopy.suggestedPlan,
+              sourceArea: `admin-navigation:${activeItem.href}`,
+              featureKey: activeItem.featureKey,
+            })
+          }
+        />
+      ) : null}
+    </>
   );
 }
 

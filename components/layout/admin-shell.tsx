@@ -7,16 +7,22 @@ import {
   Search,
   ShieldCheck,
 } from "lucide-react";
-import { logoutAction, type OrganizationContext } from "@/lib/auth";
-import { AdminNavigation } from "@/components/layout/admin-navigation";
+import { logoutAction, type OrganizationContext, type SubscriptionContext } from "@/lib/auth";
+import type { UsagePrompt } from "@/lib/upgrade";
 import { ChiChiAssistant } from "@/components/admin/chichi-assistant";
+import { UpgradePrompt as UpgradeInlinePrompt, UpgradePromptBadge } from "@/components/admin/upgrade-prompt";
+import { AdminNavigation } from "@/components/layout/admin-navigation";
 
 export function AdminShell({
   children,
   organization,
+  subscription,
+  usagePrompt,
 }: {
   children: ReactNode;
   organization: OrganizationContext;
+  subscription: SubscriptionContext;
+  usagePrompt: UsagePrompt | null;
 }) {
   const initials = organization.name
     .split(" ")
@@ -46,9 +52,7 @@ export function AdminShell({
                   <p className="mt-2 text-xl font-semibold tracking-[0.01em] text-stone-50">
                     mydogportal.site
                   </p>
-                  <p className="mt-1 text-sm text-stone-400">
-                    {organization.name}
-                  </p>
+                  <p className="mt-1 text-sm text-stone-400">{organization.name}</p>
                 </div>
               </div>
 
@@ -71,22 +75,39 @@ export function AdminShell({
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-            <AdminNavigation />
+            <AdminNavigation subscription={subscription} />
           </div>
 
           <div className="border-t border-white/[0.07] p-4">
+            {usagePrompt ? (
+              <div className="mb-4">
+                <UpgradeInlinePrompt
+                  title={usagePrompt.title}
+                  body={`${usagePrompt.body} ${usagePrompt.currentValue} of ${usagePrompt.limitValue} in use.`}
+                  currentPlan={subscription.planKey}
+                  suggestedPlan={usagePrompt.suggestedPlan}
+                  primaryLabel={`Upgrade to ${usagePrompt.suggestedPlan === "elite" ? "Premium" : "Professional"}`}
+                  sourceArea="admin-sidebar-usage"
+                  featureKey={usagePrompt.featureKey}
+                  dismissible
+                  compact
+                />
+              </div>
+            ) : null}
+
             <div className="rounded-[22px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.018)),linear-gradient(145deg,rgba(14,20,26,0.96),rgba(10,14,20,0.96))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-              <div className="flex items-center gap-3">
+              <div className="flex items-start gap-3">
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-gold/20 bg-[radial-gradient(circle_at_30%_20%,rgba(215,173,103,0.24),rgba(215,173,103,0.1)_40%,rgba(12,16,22,0.94))] text-sm font-semibold text-gold-soft">
                   {initials || "MD"}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-stone-100">
-                    {organization.name}
-                  </p>
+                  <p className="truncate text-sm font-semibold text-stone-100">{organization.name}</p>
                   <div className="mt-1 flex items-center gap-2 text-[11px] text-stone-500">
                     <CircleDot className="size-3 fill-emerald-300 text-emerald-300" />
                     <span className="truncate">Protected breeder workspace</span>
+                  </div>
+                  <div className="mt-3">
+                    <UpgradePromptBadge planKey={subscription.planKey} />
                   </div>
                 </div>
               </div>
@@ -99,8 +120,8 @@ export function AdminShell({
                 />
                 <FooterMeta
                   icon={<PawPrint className="size-3.5" />}
-                  label="Program"
-                  value="Active"
+                  label="Plan"
+                  value={subscription.planName}
                 />
               </div>
 
@@ -123,13 +144,12 @@ export function AdminShell({
                 Admin Command
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <p className="text-lg font-semibold text-stone-50">
-                  {organization.name}
-                </p>
+                <p className="text-lg font-semibold text-stone-50">{organization.name}</p>
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-stone-300">
                   <CircleDot className="size-3 fill-emerald-300 text-emerald-300" />
                   Owner Workspace
                 </span>
+                <UpgradePromptBadge planKey={subscription.planKey} />
               </div>
             </div>
 
@@ -144,12 +164,10 @@ export function AdminShell({
           </div>
         </header>
 
-        <main className="mx-auto max-w-[1560px] px-5 py-8 lg:px-8">
-          {children}
-        </main>
+        <main className="mx-auto max-w-[1560px] px-5 py-8 lg:px-8">{children}</main>
       </div>
 
-      <ChiChiAssistant />
+      <ChiChiAssistant subscription={subscription} />
     </div>
   );
 }
@@ -178,9 +196,7 @@ function FooterMeta({
     <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5">
       <div className="flex items-center gap-2 text-stone-500">
         <span className="text-gold">{icon}</span>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">
-          {label}
-        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.2em]">{label}</p>
       </div>
       <p className="mt-1 text-sm font-semibold text-stone-100">{value}</p>
     </div>

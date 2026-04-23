@@ -1,12 +1,29 @@
 import { NextResponse } from "next/server";
-import { getOptionalAdminOrganization } from "@/lib/auth";
+import { getOptionalAdminOrganization, getSubscriptionForOrganization } from "@/lib/auth";
 import { loadGeneratedDocumentPdf } from "@/lib/ai-service";
+import { hasFeatureAccess } from "@/lib/upgrade";
+import { logUpgradeEvent } from "@/lib/upgrade-service";
 
 export async function GET(_: Request, context: { params: Promise<{ documentId: string }> }) {
   const organization = await getOptionalAdminOrganization();
 
   if (!organization) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const subscription = await getSubscriptionForOrganization(organization.id);
+
+  if (!hasFeatureAccess(subscription.planKey, "ai_documents")) {
+    await logUpgradeEvent({
+      organizationId: organization.id,
+      triggerType: "feature_lock_click",
+      sourceArea: "/api/admin/generated-documents/pdf",
+      currentPlan: subscription.planName,
+      suggestedPlan: "Premium",
+      metadata: { featureKey: "ai_documents" },
+    });
+
+    return NextResponse.json({ error: "AI Documents is available in the Premium plan." }, { status: 403 });
   }
 
   const { documentId } = await context.params;

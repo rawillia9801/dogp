@@ -26,12 +26,12 @@ export const plans: Plan[] = [
     highlights: [
       "Dashboard, dogs, litters, and puppies",
       "Breeding program workspace",
-      "Admin settings",
+      "Basic dashboard and settings",
     ],
   },
   {
     code: "pro",
-    name: "Pro",
+    name: "Professional",
     price: 79,
     popular: true,
     limits: {
@@ -42,12 +42,12 @@ export const plans: Plan[] = [
     highlights: [
       "Everything in Starter",
       "Buyers, applications, and payments",
-      "Documents and transportation",
+      "Documents, transportation, and automation",
     ],
   },
   {
     code: "elite",
-    name: "Elite",
+    name: "Premium",
     price: 149,
     limits: {
       dogs: "Unlimited",
@@ -55,10 +55,10 @@ export const plans: Plan[] = [
       users: "Unlimited",
     },
     highlights: [
-      "Everything in Pro",
-      "Automation notices",
-      "Expanded limits",
-      "Multi-user operations",
+      "Everything in Professional",
+      "AI Documents and Website Builder",
+      "ChiChi AI and premium workflows",
+      "Expanded limits and multi-user operations",
     ],
   },
 ];
@@ -68,6 +68,8 @@ export const comparisonRows = [
   ["Litters limit", "3", "12", "Unlimited"],
   ["Users", "1", "4", "Unlimited"],
   ["Breeding workspace", "Included", "Included", "Included"],
-  ["Buyer operations", "Included", "Included", "Included"],
-  ["Automation notices", "Included", "Included", "Included"],
+  ["Buyer operations", "-", "Included", "Included"],
+  ["Payments and documents", "-", "Included", "Included"],
+  ["Automation notices", "-", "Included", "Included"],
+  ["AI tools", "-", "-", "Included"],
 ];

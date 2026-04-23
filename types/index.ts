@@ -6,6 +6,25 @@ export type PlanLimits = {
   users: number | "Unlimited";
 };
 
+export type UpgradeEvent = {
+  id: string;
+  organizationId: string;
+  triggerType: string;
+  sourceArea: string;
+  currentPlan: string;
+  suggestedPlan: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type StoredPlanLimit = {
+  id: string;
+  planKey: string;
+  featureKey: string;
+  limitValue: number | null;
+  createdAt: string;
+};
+
 export type DogRole = "dam" | "sire" | "prospect" | "retired";
 export type DogStatus = "active" | "watch" | "retired" | "archived";
 export type PuppyStatus = "available" | "reserved" | "matched" | "retained" | "placed";

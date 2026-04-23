@@ -1,18 +1,22 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { BellRing, Eye, FileSignature, FileText, FolderOpen, Link2, MailCheck, UploadCloud } from "lucide-react";
+import type { SubscriptionContext } from "@/lib/auth";
 import type { AutomationWorkspaceData } from "@/lib/automation-data";
 import type { BusinessWorkspaceData } from "@/lib/business-data";
+import { getUpgradeCopy, hasFeatureAccess } from "@/lib/upgrade";
 import type { BuyerDocument } from "@/types";
 import { BusinessSearch, GuidedPanel, MetricCell, compactDate } from "@/components/admin/business-ui";
 import { FieldRow, Panel, StatusPill, WorkspaceHeader, formatDate, toneForStatus } from "@/components/admin/workspace-ui";
+import { UpgradeActionButton } from "@/components/admin/upgrade-modal";
 
 export function DocumentsWorkspace({
   business,
   automation,
+  subscription,
 }: {
   business: BusinessWorkspaceData;
   automation?: AutomationWorkspaceData;
+  subscription: SubscriptionContext;
 }) {
   const selectedDocument = business.documents[0] ?? null;
   const selectedBuyer = selectedDocument
@@ -25,6 +29,8 @@ export function DocumentsWorkspace({
     ? automation.logs.filter((log) => log.relatedType === "document" && log.relatedId === selectedDocument.id)
     : [];
   const latestNotice = documentNoticeLogs[0] ?? null;
+  const aiLocked = !hasFeatureAccess(subscription.planKey, "ai_documents");
+  const aiCopy = getUpgradeCopy("ai_documents");
 
   return (
     <div>
@@ -34,10 +40,22 @@ export function DocumentsWorkspace({
         description="Contracts, payment plans, health files, delivery paperwork, buyer visibility, and signature status in one workspace."
         actions={
           <>
-            <Link href="/admin/documents/ai" className="inline-flex h-10 items-center gap-2 rounded-md border border-white/[0.12] bg-white/[0.04] px-4 text-sm font-semibold text-stone-100">
+            <UpgradeActionButton
+              locked={aiLocked}
+              title={aiCopy.title}
+              body={aiCopy.body}
+              primaryLabel={aiCopy.primaryLabel}
+              secondaryLabel={aiCopy.secondaryLabel}
+              currentPlan={subscription.planKey}
+              suggestedPlan={aiCopy.suggestedPlan}
+              sourceArea="/admin/documents:ai-documents"
+              featureKey="ai_documents"
+              href="/admin/documents/ai"
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-white/[0.12] bg-white/[0.04] px-4 text-sm font-semibold text-stone-100"
+            >
               <FileSignature className="size-4" />
               AI Documents
-            </Link>
+            </UpgradeActionButton>
             <button className="inline-flex h-10 items-center gap-2 rounded-md border border-gold/35 bg-gold px-4 text-sm font-semibold text-[#20160c] shadow-gold">
               <UploadCloud className="size-4" />
               Upload File

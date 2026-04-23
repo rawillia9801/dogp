@@ -7,6 +7,8 @@ import {
   createSupabaseServerClient,
   isSupabaseConfigured,
 } from "@/lib/supabase";
+import type { PlanKey } from "@/lib/plans";
+import { displayPlanName, normalizePlanKey } from "@/lib/upgrade";
 
 export type OrganizationContext = {
   userId: string;
@@ -16,6 +18,12 @@ export type OrganizationContext = {
   phone: string | null;
   address: string | null;
   role: "owner" | "staff";
+};
+
+export type SubscriptionContext = {
+  status: string;
+  planKey: PlanKey;
+  planName: string;
 };
 
 const DEVELOPMENT_USER_ID = "00000000-0000-4000-8000-000000000001";
@@ -221,25 +229,33 @@ export async function updateOrganizationAction(formData: FormData) {
 
 export async function getSubscription() {
   const organization = await requireAdminOrganization();
+  return getSubscriptionForOrganization(organization.id);
+}
+
+export async function getSubscriptionForOrganization(organizationId: string): Promise<SubscriptionContext> {
+  const fallback = {
+    status: "trialing",
+    planKey: "starter" as const,
+    planName: "Starter",
+  };
 
   if (!isSupabaseConfigured()) {
-    return {
-      status: "trialing",
-      planName: "Starter",
-    };
+    return fallback;
   }
 
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase!
     .from("subscriptions")
     .select("status, plans(name)")
-    .eq("organization_id", organization.id)
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   const plan = Array.isArray(data?.plans) ? data?.plans[0] : data?.plans;
+  const planKey = normalizePlanKey(plan?.name ?? "Starter");
 
   return {
     status: data?.status ?? "inactive",
-    planName: plan?.name ?? "Starter",
+    planKey,
+    planName: displayPlanName(planKey),
   };
 }
