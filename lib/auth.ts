@@ -32,41 +32,43 @@ const DEVELOPMENT_ORGANIZATION_ID = "00000000-0000-4000-8000-000000000002";
 export async function signInAction(formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const nextPath = sanitizeNextPath(formData.get("next"));
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    redirect("/sign-in?error=config");
+    redirect(buildAuthRedirect("/sign-in", "config", nextPath));
   }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect("/sign-in?error=signin");
+    redirect(buildAuthRedirect("/sign-in", "signin", nextPath));
   }
 
-  redirect("/admin");
+  redirect(nextPath ?? "/admin");
 }
 
 export async function signUpAction(formData: FormData) {
   const organizationName = String(formData.get("organizationName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const nextPath = sanitizeNextPath(formData.get("next"));
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    redirect("/sign-up?error=config");
+    redirect(buildAuthRedirect("/sign-up", "config", nextPath));
   }
 
   const { data, error } = await supabase.auth.signUp({ email, password });
 
   if (error || !data.user) {
-    redirect("/sign-up?error=signup");
+    redirect(buildAuthRedirect("/sign-up", "signup", nextPath));
   }
 
   const admin = createSupabaseAdminClient();
 
   if (!admin) {
-    redirect("/sign-up?error=config");
+    redirect(buildAuthRedirect("/sign-up", "config", nextPath));
   }
 
   const { data: plan } = await admin
@@ -85,7 +87,7 @@ export async function signUpAction(formData: FormData) {
     .single();
 
   if (organizationError || !organization) {
-    redirect("/sign-up?error=organization");
+    redirect(buildAuthRedirect("/sign-up", "organization", nextPath));
   }
 
   await admin.from("organization_users").insert({
@@ -102,7 +104,7 @@ export async function signUpAction(formData: FormData) {
     });
   }
 
-  redirect("/admin");
+  redirect(nextPath ?? "/admin");
 }
 
 export async function logoutAction() {
@@ -258,4 +260,28 @@ export async function getSubscriptionForOrganization(organizationId: string): Pr
     planKey,
     planName: displayPlanName(planKey),
   };
+}
+
+function sanitizeNextPath(value: FormDataEntryValue | null) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
+    return null;
+  }
+
+  return trimmed;
+}
+
+function buildAuthRedirect(pathname: "/sign-in" | "/sign-up", error: string, nextPath: string | null) {
+  const params = new URLSearchParams({ error });
+
+  if (nextPath) {
+    params.set("next", nextPath);
+  }
+
+  return `${pathname}?${params.toString()}`;
 }
