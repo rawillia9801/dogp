@@ -10,7 +10,6 @@ import {
   CreditCard,
   FileText,
   Globe2,
-  HeartHandshake,
   Home,
   LayoutDashboard,
   MailCheck,
@@ -29,37 +28,37 @@ const storySteps = [
   {
     eyebrow: "01",
     title: "Your website brings serious buyers in.",
-    text: "A polished breeder website presents your program, puppies, policies, application process, and buyer trust sections.",
+    text: "Present your breeding program, available puppies, policies, application process, and buyer trust details with a polished first impression.",
     icon: Globe2,
   },
   {
     eyebrow: "02",
-    title: "Applications become organized buyer records.",
+    title: "Applications become buyer records.",
     text: "Buyer details, puppy interest, approval status, notes, waitlist stage, and next steps stay connected from the beginning.",
     icon: Users,
   },
   {
     eyebrow: "03",
     title: "The buyer portal keeps families informed.",
-    text: "Buyers can see their puppy, payments, documents, updates, messages, transportation details, and go-home instructions.",
+    text: "Each buyer gets a private place to follow their puppy, review documents, track payments, receive updates, and prepare for go-home day.",
     icon: Home,
   },
   {
     eyebrow: "04",
     title: "Documents and payments stay together.",
-    text: "Contracts, health guarantees, deposits, balances, payment plans, and signed records are organized around the buyer and puppy.",
+    text: "Contracts, health guarantees, deposits, balances, payment plans, and signed records stay organized around the buyer and puppy.",
     icon: ClipboardSignature,
   },
   {
     eyebrow: "05",
     title: "Automation keeps follow-up moving.",
-    text: "Send payment reminders, puppy updates, document notices, waitlist emails, and triggered messages without doing everything manually.",
+    text: "Send payment reminders, puppy updates, document notices, waitlist messages, and go-home instructions without doing everything manually.",
     icon: BellRing,
   },
   {
     eyebrow: "06",
-    title: "Chi Chi helps guide the experience.",
-    text: "Chi Chi helps breeders prepare work and helps buyers understand documents, payments, puppy updates, and portal steps.",
+    title: "Chi Chi helps guide the next step.",
+    text: "Chi Chi helps prepare work for the breeder and gives buyers clearer guidance through documents, payments, updates, and portal steps.",
     icon: Bot,
   },
 ];
@@ -88,22 +87,22 @@ const coreFeatures = [
   {
     icon: FileText,
     title: "Smart Documents",
-    text: "Create contracts, health guarantees, deposit agreements, payment plan addendums, transport agreements, and buyer forms.",
+    text: "Professional breeder documents, agreements, health guarantees, deposits, payment forms, and placement paperwork.",
   },
   {
     icon: Home,
     title: "Buyer Portal",
-    text: "Give buyers a private place to follow their puppy journey, payment status, signed documents, messages, and updates.",
+    text: "A private place for each buyer to follow their puppy journey, payment status, signed documents, messages, and updates.",
   },
   {
     icon: Globe2,
     title: "Breeder Website Builder",
-    text: "Launch a professional public website with puppy listings, applications, policies, breeder story, and trust sections.",
+    text: "Polished breeder websites with puppy listings, applications, policies, buyer trust sections, and optional custom domains.",
   },
   {
     icon: MailCheck,
     title: "Breeder Automation Engine",
-    text: "Send branded emails, payment reminders, puppy updates, document notices, waitlist messages, and triggered workflows.",
+    text: "Branded email templates, payment reminders, puppy updates, document notices, waitlist messages, and triggered workflows.",
   },
 ];
 
@@ -163,21 +162,21 @@ const pricing = [
 const entryPoints = [
   {
     icon: FileText,
-    title: "Documents Only",
+    title: "Smart Documents",
     domain: "DogBreederDocs.Online",
-    text: "For breeders who only need professional contracts, health guarantees, deposits, and buyer paperwork.",
+    text: "Professional breeder documents, agreements, health guarantees, deposits, and payment forms built around real placement workflows.",
   },
   {
     icon: LayoutDashboard,
-    title: "Dog Breeder OS",
+    title: "Breeder Operating System",
     domain: "MyDogPortal.Site",
-    text: "For breeders who want to manage dogs, litters, puppies, buyers, payments, documents, and daily work.",
+    text: "A complete workspace for dogs, litters, puppies, buyers, payments, documents, transportation, reminders, and daily breeder operations.",
   },
   {
     icon: Globe2,
-    title: "Breeder Website",
+    title: "Breeder Websites",
     domain: "DogBreederWeb.Site",
-    text: "For breeders who want a polished public website, puppy listings, applications, and buyer trust pages.",
+    text: "Polished websites with puppy listings, application flows, policies, buyer trust sections, and optional custom domains.",
   },
 ];
 
@@ -200,7 +199,7 @@ export default function HomePage() {
 
           <nav className="hidden items-center gap-7 text-sm font-bold text-[#5D6A61] lg:flex">
             <a href="#story" className="transition hover:text-[#315744]">
-              Story
+              Journey
             </a>
             <a href="#features" className="transition hover:text-[#315744]">
               Features
@@ -263,7 +262,7 @@ export default function HomePage() {
                 href="#story"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#D8CBB8] bg-white px-7 py-4 text-base font-black text-[#315744] shadow-sm transition hover:bg-[#F2EBDD]"
               >
-                See the Customer Journey
+                See the Journey
               </a>
             </div>
 
@@ -288,16 +287,15 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="max-w-3xl">
             <p className="text-sm font-black uppercase tracking-[0.24em] text-[#A67C2E]">
-              The full breeder experience
+              The connected breeder journey
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] text-[#17251F] md:text-6xl">
-              From first website visit to go-home day.
+              From website visit to go-home day, everything stays connected.
             </h2>
             <p className="mt-5 text-lg leading-8 text-[#596860]">
-              This is the story breeders need to see immediately: your website
-              attracts buyers, your system organizes them, your portal guides
-              them, your documents protect the sale, your automations keep
-              follow-up moving, and Chi Chi helps everyone understand the next step.
+              Your website, applications, buyer portal, documents, payments,
+              puppy updates, and follow-up tools work together in one
+              breeder-focused system.
             </p>
           </div>
 
@@ -312,15 +310,14 @@ export default function HomePage() {
       <section id="features" className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm font-black uppercase tracking-[0.24em] text-[#A67C2E]">
-            One system, multiple ways to start
+            One place for the work behind every litter
           </p>
           <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] text-[#17251F] md:text-6xl">
-            More than software. A breeder business system.
+            A complete breeder business system.
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#596860]">
-            Breeders should not have to run their business from scattered
-            spreadsheets, texts, PDFs, emails, payment screenshots, and random notes.
-            MyDogPortal brings the work together in one place.
+            Keep dogs, litters, puppies, buyers, documents, payments, messages,
+            and reminders organized without bouncing between separate tools.
           </p>
         </div>
 
@@ -338,12 +335,12 @@ export default function HomePage() {
               Buyer Portal
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] md:text-6xl">
-              Give buyers a calm, private place to follow their puppy journey.
+              A private portal for every buyer.
             </h2>
             <p className="mt-5 text-lg leading-8 text-white/75">
-              A buyer portal makes the breeder look more professional and helps
-              families understand what is happening. Their puppy, payments,
-              documents, messages, pickup details, and updates are all in one place.
+              Give families a clear place to follow their puppy, review
+              documents, track payments, receive updates, and prepare for
+              go-home day.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -382,7 +379,7 @@ export default function HomePage() {
               Breeder Automation Engine
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] text-[#17251F] md:text-6xl">
-              Follow-up should not depend on remembering everything manually.
+              Follow-up that keeps moving.
             </h2>
             <p className="mt-5 text-lg leading-8 text-[#596860]">
               Send payment reminders, contract notices, waitlist follow-ups,
@@ -415,15 +412,15 @@ export default function HomePage() {
 
           <div>
             <p className="text-sm font-black uppercase tracking-[0.24em] text-[#A67C2E]">
-              Chi Chi assistant
+              Chi Chi Assistant
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] text-[#17251F] md:text-6xl">
-              A helpful assistant built into the breeder and buyer experience.
+              Chi Chi helps keep the day moving.
             </h2>
             <p className="mt-5 text-lg leading-8 text-[#596860]">
-              Chi Chi should feel useful, warm, and practical. It helps breeders
-              prepare documents, check balances, send updates, and guide buyers
-              through their portal, instead of feeling like a generic chatbot.
+              From document reminders to payment questions and puppy updates,
+              Chi Chi helps breeders stay organized and gives buyers clearer
+              next steps.
             </p>
 
             <div className="mt-8 grid gap-4">
@@ -450,14 +447,14 @@ export default function HomePage() {
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-sm font-black uppercase tracking-[0.24em] text-[#A67C2E]">
-            Product entry points
+            Flexible ways to start
           </p>
           <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] text-[#17251F] md:text-6xl">
-            Let breeders start where they need help most.
+            Start with the tools your program needs today.
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#596860]">
-            Some breeders only want documents. Some want the operating system.
-            Some want a website. The experience should feel unified, not scattered.
+            Use MyDogPortal as a complete breeder operating system, or begin
+            with documents, websites, or buyer portal features and grow from there.
           </p>
         </div>
 
@@ -472,14 +469,15 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-5 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-sm font-black uppercase tracking-[0.24em] text-[#A67C2E]">
-              Breeder website preview
+              Breeder Website Preview
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.045em] text-[#17251F] md:text-6xl">
-              A public breeder website that looks professional from day one.
+              A polished breeder website connected to the rest of your business.
             </h2>
             <p className="mt-5 text-lg leading-8 text-[#596860]">
-              Breeders can use a subdomain like kennelname.dogbreederweb.site or
-              connect their own custom domain.
+              Show available puppies, collect applications, explain your
+              policies, and give buyers a professional first impression before
+              they ever enter the portal.
             </p>
           </div>
 
@@ -496,8 +494,8 @@ export default function HomePage() {
             Professional enough to matter. Affordable enough to start.
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#596860]">
-            Breeders can begin with a simple plan, then grow into the full operating system
-            as their program needs more structure.
+            Begin with a simple plan, then grow into the full operating system
+            as your breeding program needs more structure.
           </p>
         </div>
 
@@ -516,11 +514,11 @@ export default function HomePage() {
                 Built for modern breeder operations
               </p>
               <h2 className="mt-3 max-w-4xl text-4xl font-black tracking-[-0.045em] md:text-6xl">
-                Make the breeder business feel organized, trustworthy, and alive.
+                Build a breeder experience that feels organized from the first click.
               </h2>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-white/70">
-                Websites, applications, buyers, puppies, documents, payments,
-                automations, portals, and Chi Chi — connected in one premium system.
+                From public website to buyer portal to signed documents and
+                go-home preparation, MyDogPortal keeps the entire journey clear.
               </p>
             </div>
 
@@ -633,8 +631,9 @@ function HeroCommandCenter() {
                 </div>
               </div>
               <p className="rounded-2xl bg-white/10 p-4 text-sm leading-6 text-white/85">
-                “I found three buyers who need follow-up. I can prepare the reminders,
-                attach the right documents, and schedule puppy updates.”
+                “Your buyer packet for Willow is almost ready. The deposit agreement
+                is complete, the health guarantee is prepared, and one payment
+                reminder is due tomorrow.”
               </p>
             </div>
           </div>
@@ -851,21 +850,20 @@ function ChiChiPreview() {
         </div>
 
         <ChatBubble sender="Chi Chi">
-          Hi! I can help prepare buyer documents, explain payment balances,
-          organize puppy updates, create reminders, and guide buyers through their portal.
+          Your buyer packet for Willow is almost ready. The deposit agreement is
+          complete, the health guarantee is prepared, and one payment reminder is
+          due tomorrow.
         </ChatBubble>
 
-        <ChatBubble sender="Breeder">
-          Which buyers need attention today?
-        </ChatBubble>
+        <ChatBubble sender="Breeder">What still needs attention?</ChatBubble>
 
         <ChatBubble sender="Chi Chi">
-          Three buyers need follow-up: one unsigned deposit agreement, one payment
-          reminder, and one puppy update ready to send.
+          Two items: Amanda needs her portal invite, and the 6-week puppy update is
+          ready to send.
         </ChatBubble>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          {["Prepare Docs", "Check Balances", "Send Pupdate"].map((action) => (
+          {["Prepare Docs", "Invite Buyer", "Send Pupdate"].map((action) => (
             <button
               key={action}
               className="rounded-2xl border border-[#D8CBB8] bg-white px-4 py-3 text-sm font-black text-[#315744]"
