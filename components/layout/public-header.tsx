@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Dog, LogOut, PawPrint } from "lucide-react";
 import { logoutAction } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase";
@@ -7,6 +8,7 @@ export async function PublicHeader() {
   const supabase = await createSupabaseServerClient();
   const userResponse = supabase ? await supabase.auth.getUser() : null;
   const isSignedIn = Boolean(userResponse?.data.user);
+  const appHref = await getAppDashboardHref();
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#E5DED2] bg-[#F8F7F3]/95 backdrop-blur-xl">
@@ -40,7 +42,7 @@ export async function PublicHeader() {
               <PawPrint className="h-5 w-5" />
             </Link>
             <Link
-              href="/portal"
+              href={appHref}
               className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#D8CCB7] bg-white text-[#2F4F3E] shadow-sm transition hover:bg-[#F4EFE6]"
               aria-label="Profile"
               title="Profile"
@@ -76,4 +78,22 @@ export async function PublicHeader() {
       </div>
     </header>
   );
+}
+
+async function getAppDashboardHref() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (appUrl) {
+    return `${appUrl.replace(/\/+$/, "")}/dashboard`;
+  }
+
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+  const protocol = headerStore.get("x-forwarded-proto") ?? "https";
+
+  if (host === "mydogportal.site" || host === "www.mydogportal.site") {
+    return `${protocol}://app.mydogportal.site/dashboard`;
+  }
+
+  return "/dashboard";
 }

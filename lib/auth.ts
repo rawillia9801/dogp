@@ -48,7 +48,7 @@ export async function signInAction(formData: FormData) {
     redirect(buildAuthRedirect("/sign-in", "signin", nextPath));
   }
 
-  redirect(nextPath ?? "/admin");
+  redirect(nextPath ?? await getDefaultSignedInDestination());
 }
 
 export async function signUpAction(formData: FormData) {
@@ -66,7 +66,7 @@ export async function signUpAction(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${await getAppBaseUrl()}/auth/confirm?next=/admin`,
+      emailRedirectTo: `${await getAppBaseUrl()}/auth/confirm?next=/dashboard`,
     },
   });
 
@@ -127,7 +127,7 @@ export async function signUpAction(formData: FormData) {
     }
   }
 
-  redirect(nextPath ?? "/admin");
+  redirect(nextPath ?? await getDefaultSignedInDestination());
 }
 
 export async function logoutAction() {
@@ -381,4 +381,22 @@ async function getAppBaseUrl() {
   }
 
   return "http://localhost:3000";
+}
+
+async function getDefaultSignedInDestination() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (appUrl) {
+    return `${appUrl.replace(/\/+$/, "")}/dashboard`;
+  }
+
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
+  const protocol = headerStore.get("x-forwarded-proto") ?? "https";
+
+  if (host === "mydogportal.site" || host === "www.mydogportal.site") {
+    return `${protocol}://app.mydogportal.site/dashboard`;
+  }
+
+  return "/dashboard";
 }

@@ -15,7 +15,7 @@ export function PortalShell({
     <div className="min-h-screen bg-[#f7f1e8] text-[#2b2118]">
       <header className="border-b border-[#dfcbae] bg-[#fffaf2]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <Link href="/portal">
+          <Link href="/dashboard">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8a602d]">
               {organization.name}
             </p>
