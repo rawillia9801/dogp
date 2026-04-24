@@ -9,6 +9,9 @@ add column if not exists planned_start date;
 alter table if exists public.breeding_pairings
 add column if not exists planned_end date;
 
+alter table if exists public.breeding_pairings
+add column if not exists expected_litter_size text;
+
 create or replace view public.breedings
 with (security_invoker = true)
 as

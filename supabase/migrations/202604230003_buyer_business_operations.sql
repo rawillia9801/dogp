@@ -152,36 +152,42 @@ alter table public.payment_plans enable row level security;
 alter table public.documents enable row level security;
 alter table public.transportation enable row level security;
 
+drop policy if exists "org users manage buyers" on public.buyers;
 create policy "org users manage buyers"
 on public.buyers
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage applications" on public.applications;
 create policy "org users manage applications"
 on public.applications
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage payments" on public.payments;
 create policy "org users manage payments"
 on public.payments
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage payment plans" on public.payment_plans;
 create policy "org users manage payment plans"
 on public.payment_plans
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage documents" on public.documents;
 create policy "org users manage documents"
 on public.documents
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage transportation" on public.transportation;
 create policy "org users manage transportation"
 on public.transportation
 for all

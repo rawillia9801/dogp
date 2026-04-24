@@ -223,48 +223,56 @@ alter table public.puppies enable row level security;
 alter table public.breeder_tasks enable row level security;
 alter table public.breeder_events enable row level security;
 
+drop policy if exists "org users manage breeding dogs" on public.breeding_dogs;
 create policy "org users manage breeding dogs"
 on public.breeding_dogs
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage dog health records" on public.dog_health_records;
 create policy "org users manage dog health records"
 on public.dog_health_records
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage dog genetic records" on public.dog_genetic_records;
 create policy "org users manage dog genetic records"
 on public.dog_genetic_records
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage breeding pairings" on public.breeding_pairings;
 create policy "org users manage breeding pairings"
 on public.breeding_pairings
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage litters" on public.litters;
 create policy "org users manage litters"
 on public.litters
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage puppies" on public.puppies;
 create policy "org users manage puppies"
 on public.puppies
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage breeder tasks" on public.breeder_tasks;
 create policy "org users manage breeder tasks"
 on public.breeder_tasks
 for all
 using (public.user_has_org_access(organization_id))
 with check (public.user_has_org_access(organization_id));
 
+drop policy if exists "org users manage breeder events" on public.breeder_events;
 create policy "org users manage breeder events"
 on public.breeder_events
 for all
