@@ -14,9 +14,11 @@ export type OrganizationContext = {
   userId: string;
   id: string;
   name: string;
+  legalName: string | null;
   email: string | null;
   phone: string | null;
-  address: string | null;
+  website: string | null;
+  timezone: string | null;
   role: "owner" | "staff";
 };
 
@@ -81,7 +83,13 @@ export async function signUpAction(formData: FormData) {
     .from("organizations")
     .insert({
       name: organizationName,
+      legal_name: organizationName,
+      slug: buildOrganizationSlug(organizationName),
       email,
+      status: "active",
+      subscription_status: "trialing",
+      onboarding_completed: false,
+      timezone: process.env.DEFAULT_ORGANIZATION_TIMEZONE || "America/New_York",
     })
     .select("id")
     .single();
@@ -163,7 +171,7 @@ async function getAuthenticatedOrganization(): Promise<OrganizationContext | nul
 
   const { data: membership } = await supabase!
     .from("organization_users")
-    .select("role, organizations(id, name, email, phone, address)")
+    .select("role, organizations(id, name, legal_name, email, phone, website, timezone)")
     .eq("user_id", userData.user.id)
     .limit(1)
     .maybeSingle();
@@ -184,9 +192,11 @@ async function getAuthenticatedOrganization(): Promise<OrganizationContext | nul
     userId: userData.user.id,
     id: organization.id,
     name: organization.name,
+    legalName: organization.legal_name,
     email: organization.email,
     phone: organization.phone,
-    address: organization.address,
+    website: organization.website,
+    timezone: organization.timezone,
     role: membership.role as "owner" | "staff",
   };
 }
@@ -200,9 +210,11 @@ function getDevelopmentOrganization(): OrganizationContext | null {
     userId: DEVELOPMENT_USER_ID,
     id: DEVELOPMENT_ORGANIZATION_ID,
     name: "Development Kennel",
+    legalName: "Development Kennel",
     email: process.env.NEXT_PUBLIC_DEV_OWNER_EMAIL?.trim() || "owner@mydogportal.local",
     phone: null,
-    address: null,
+    website: null,
+    timezone: process.env.DEFAULT_ORGANIZATION_TIMEZONE || "America/New_York",
     role: "owner",
   };
 }
@@ -219,9 +231,11 @@ export async function updateOrganizationAction(formData: FormData) {
     .from("organizations")
     .update({
       name: String(formData.get("name") ?? ""),
+      legal_name: String(formData.get("legalName") ?? ""),
       email: String(formData.get("email") ?? ""),
       phone: String(formData.get("phone") ?? ""),
-      address: String(formData.get("address") ?? ""),
+      website: String(formData.get("website") ?? ""),
+      timezone: String(formData.get("timezone") ?? ""),
     })
     .eq("id", organization.id);
 
@@ -284,4 +298,16 @@ function buildAuthRedirect(pathname: "/sign-in" | "/sign-up", error: string, nex
   }
 
   return `${pathname}?${params.toString()}`;
+}
+
+function buildOrganizationSlug(name: string) {
+  const base = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+
+  const fallback = base.length > 0 ? base : "breeder";
+  return `${fallback}-${Date.now().toString(36)}`;
 }

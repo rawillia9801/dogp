@@ -23,6 +23,10 @@ export default async function SettingsPage() {
             <input name="name" defaultValue={organization.name} required className="form-input mt-2" />
           </label>
           <label>
+            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Legal name</span>
+            <input name="legalName" defaultValue={organization.legalName ?? ""} className="form-input mt-2" />
+          </label>
+          <label>
             <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Email</span>
             <input name="email" type="email" defaultValue={organization.email ?? ""} className="form-input mt-2" />
           </label>
@@ -31,8 +35,12 @@ export default async function SettingsPage() {
             <input name="phone" defaultValue={organization.phone ?? ""} className="form-input mt-2" />
           </label>
           <label>
-            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Address</span>
-            <textarea name="address" defaultValue={organization.address ?? ""} className="form-input mt-2 min-h-28 py-3" />
+            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Website</span>
+            <input name="website" defaultValue={organization.website ?? ""} className="form-input mt-2" />
+          </label>
+          <label>
+            <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Timezone</span>
+            <input name="timezone" defaultValue={organization.timezone ?? ""} className="form-input mt-2" />
           </label>
           <SubmitButton className="max-w-xs">Save Settings</SubmitButton>
         </form>
