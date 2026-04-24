@@ -105,18 +105,26 @@ export async function signUpAction(formData: FormData) {
     redirect(buildAuthRedirect("/sign-up", "organization", nextPath));
   }
 
-  await admin.from("organization_users").insert({
+  const { error: membershipError } = await admin.from("organization_users").insert({
     organization_id: organization.id,
     user_id: data.user.id,
     role: "owner",
   });
 
+  if (membershipError) {
+    console.error("organization_users insert failed during sign up", membershipError);
+  }
+
   if (plan) {
-    await admin.from("subscriptions").insert({
+    const { error: subscriptionError } = await admin.from("subscriptions").insert({
       organization_id: organization.id,
       plan_id: plan.id,
       status: "trialing",
     });
+
+    if (subscriptionError) {
+      console.error("subscription insert failed during sign up", subscriptionError);
+    }
   }
 
   redirect(nextPath ?? "/admin");
@@ -176,35 +184,59 @@ async function getAuthenticatedOrganization(): Promise<OrganizationContext | nul
     return null;
   }
 
-  const { data: membership } = await supabase!
+  const { data: membership, error: membershipError } = await supabase!
     .from("organization_users")
     .select("role, organizations(id, name, legal_name, email, phone, website, timezone)")
     .eq("user_id", userData.user.id)
     .limit(1)
     .maybeSingle();
 
-  if (!membership) {
+  if (!membershipError && membership) {
+    const organization = Array.isArray(membership.organizations)
+      ? membership.organizations[0]
+      : membership.organizations;
+
+    if (organization) {
+      return {
+        userId: userData.user.id,
+        id: organization.id,
+        name: organization.name,
+        legalName: organization.legal_name,
+        email: organization.email,
+        phone: organization.phone,
+        website: organization.website,
+        timezone: organization.timezone,
+        role: membership.role as "owner" | "staff",
+      };
+    }
+  }
+
+  if (!userData.user.email) {
     return null;
   }
 
-  const organization = Array.isArray(membership.organizations)
-    ? membership.organizations[0]
-    : membership.organizations;
+  const { data: fallbackOrganization } = await supabase!
+    .from("organizations")
+    .select("id, name, legal_name, email, phone, website, timezone")
+    .eq("email", userData.user.email)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-  if (!organization) {
+  if (!fallbackOrganization) {
     return null;
   }
 
   return {
     userId: userData.user.id,
-    id: organization.id,
-    name: organization.name,
-    legalName: organization.legal_name,
-    email: organization.email,
-    phone: organization.phone,
-    website: organization.website,
-    timezone: organization.timezone,
-    role: membership.role as "owner" | "staff",
+    id: fallbackOrganization.id,
+    name: fallbackOrganization.name,
+    legalName: fallbackOrganization.legal_name,
+    email: fallbackOrganization.email,
+    phone: fallbackOrganization.phone,
+    website: fallbackOrganization.website,
+    timezone: fallbackOrganization.timezone,
+    role: "owner",
   };
 }
 
@@ -272,6 +304,20 @@ export async function getSubscriptionForOrganization(organizationId: string): Pr
     .select("status, plans(name)")
     .eq("organization_id", organizationId)
     .maybeSingle();
+
+  if (!data) {
+    const { data: organization } = await supabase!
+      .from("organizations")
+      .select("subscription_status")
+      .eq("id", organizationId)
+      .maybeSingle();
+
+    return {
+      status: organization?.subscription_status ?? fallback.status,
+      planKey: fallback.planKey,
+      planName: fallback.planName,
+    };
+  }
 
   const plan = Array.isArray(data?.plans) ? data?.plans[0] : data?.plans;
   const planKey = normalizePlanKey(plan?.name ?? "Starter");
