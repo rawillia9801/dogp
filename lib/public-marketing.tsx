@@ -359,7 +359,7 @@ function Benefit({
 
 export function DemoCard() {
   return (
-    <div id="demo" className="relative z-10 [animation:demoFloat_7s_ease-in-out_infinite]">
+    <div id="demo" className="demo-float relative z-10">
       <div className="rounded-[2rem] border border-[#E5DED2] bg-white p-4 shadow-2xl shadow-[#2F4F3E]/10">
         <div className="rounded-[1.5rem] bg-[#F8F7F3] p-5">
           <div className="mb-5 flex items-center justify-between">
@@ -404,16 +404,6 @@ export function DemoCard() {
           </div>
         </div>
       </div>
-      <style jsx>{`
-        @keyframes demoFloat {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-      `}</style>
     </div>
   );
 }
