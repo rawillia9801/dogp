@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 
 const errorMessages: Record<string, string> = {
   config: "Authentication is not fully configured yet. Add the missing server settings and try again.",
+  confirm: "We couldn't finish email confirmation from that link. Please request a fresh confirmation email and try again.",
   signin: "We couldn't sign you in with those credentials. Double-check your email and password.",
 };
 

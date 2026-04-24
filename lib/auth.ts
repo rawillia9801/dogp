@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import {
   createSupabaseAdminClient,
   createSupabaseServerClient,
@@ -61,7 +62,13 @@ export async function signUpAction(formData: FormData) {
     redirect(buildAuthRedirect("/sign-up", "config", nextPath));
   }
 
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${await getAppBaseUrl()}/auth/confirm?next=/admin`,
+    },
+  });
 
   if (error || !data.user) {
     redirect(buildAuthRedirect("/sign-up", "signup", nextPath));
@@ -310,4 +317,22 @@ function buildOrganizationSlug(name: string) {
 
   const fallback = base.length > 0 ? base : "breeder";
   return `${fallback}-${Date.now().toString(36)}`;
+}
+
+async function getAppBaseUrl() {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const protocol = headerStore.get("x-forwarded-proto") ?? "https";
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
+  return "http://localhost:3000";
 }
