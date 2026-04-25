@@ -1,6 +1,4 @@
-from pathlib import Path
-
-code = r'''"use server";
+"use server";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -44,13 +42,6 @@ export async function signInAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const nextPath = sanitizeNextPath(formData.get("next"));
 
-  /*
-    Important:
-    Supabase auth cookies are written for the domain that performs the sign-in.
-    If a user submits the login form from www.mydogportal.site, the session may not
-    be available on app.mydogportal.site. Force the actual sign-in flow to happen
-    on app.mydogportal.site before attempting Supabase auth.
-  */
   if (await shouldForceAuthToAppDomain()) {
     redirect(await buildAppAuthUrl("/sign-in", nextPath));
   }
@@ -76,10 +67,6 @@ export async function signUpAction(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const nextPath = sanitizeNextPath(formData.get("next"));
 
-  /*
-    Same rule as sign-in: create the Supabase auth session on the app subdomain,
-    not the public marketing domain.
-  */
   if (await shouldForceAuthToAppDomain()) {
     redirect(await buildAppAuthUrl("/sign-up", nextPath));
   }
@@ -370,11 +357,6 @@ function sanitizeNextPath(value: FormDataEntryValue | null) {
     return null;
   }
 
-  /*
-    Keep app redirects internal to the app shell. Do not carry full cross-domain
-    URLs through the Supabase server action because the session cookie must be
-    created on the app domain.
-  */
   if (trimmed === `https://${APP_DOMAIN}` || trimmed === `https://${APP_DOMAIN}/`) {
     return "/dashboard";
   }
@@ -447,9 +429,7 @@ async function getCurrentHost() {
 }
 
 async function getAppBaseUrl() {
-  const envUrl =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    process.env.APP_URL?.trim();
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim();
 
   if (envUrl) {
     return envUrl.replace(/\/+$/, "");
@@ -471,9 +451,7 @@ async function getAppBaseUrl() {
 }
 
 async function getPublicBaseUrl() {
-  const envUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    process.env.SITE_URL?.trim();
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.SITE_URL?.trim();
 
   if (envUrl) {
     return envUrl.replace(/\/+$/, "");
@@ -511,8 +489,3 @@ async function getDefaultSignedInDestination() {
 
   return "/dashboard";
 }
-'''
-
-path = Path("/mnt/data/lib-auth-full-replacement.ts")
-path.write_text(code)
-path
