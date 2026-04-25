@@ -8,10 +8,14 @@ export const metadata: Metadata = {
   title: "Sign In",
 };
 
+const APP_DASHBOARD_URL = "https://app.mydogportal.site/dashboard";
+
 const errorMessages: Record<string, string> = {
   config: "Authentication is not fully configured yet. Add the missing server settings and try again.",
-  confirm: "We couldn't finish email confirmation from that link. Please request a fresh confirmation email and try again.",
-  signin: "We couldn't sign you in with those credentials. Double-check your email and password.",
+  confirm:
+    "We couldn't finish email confirmation from that link. Please request a fresh confirmation email and try again.",
+  signin:
+    "We couldn't sign you in with those credentials. Double-check your email and password.",
 };
 
 export default async function SignInPage({
@@ -20,7 +24,12 @@ export default async function SignInPage({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const params = await searchParams;
-  const nextPath = typeof params.next === "string" ? params.next : "";
+
+  const nextPath =
+    typeof params.next === "string" && params.next.trim().length > 0
+      ? params.next
+      : APP_DASHBOARD_URL;
+
   const errorMessage = params.error ? errorMessages[params.error] : null;
 
   return (
@@ -31,17 +40,31 @@ export default async function SignInPage({
             {errorMessage}
           </div>
         ) : null}
+
         <input type="hidden" name="next" value={nextPath} />
+
         <label className="block">
-          <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Email</span>
+          <span className="text-xs uppercase tracking-[0.18em] text-stone-500">
+            Email
+          </span>
           <input name="email" type="email" required className="form-input mt-2" />
         </label>
+
         <label className="block">
-          <span className="text-xs uppercase tracking-[0.18em] text-stone-500">Password</span>
-          <input name="password" type="password" required className="form-input mt-2" />
+          <span className="text-xs uppercase tracking-[0.18em] text-stone-500">
+            Password
+          </span>
+          <input
+            name="password"
+            type="password"
+            required
+            className="form-input mt-2"
+          />
         </label>
+
         <SubmitButton>Sign In</SubmitButton>
       </form>
+
       <p className="mt-5 text-center text-sm text-stone-400">
         New to mydogportal.site?{" "}
         <Link href="/sign-up" className="text-gold-soft">
