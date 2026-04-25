@@ -20,19 +20,25 @@ const errorMessages: Record<string, string> = {
   confirm:
     "We couldn't finish email confirmation from that link. Please request a fresh confirmation email and try again.",
   signin:
-    "We couldn't sign you in with those credentials. Double-check your email and password.",
+    "We couldn't sign you in with those credentials. Double-check your email, password, and email confirmation status.",
+};
+
+const noticeMessages: Record<string, string> = {
+  check_email: "Account created. Check your email and click the confirmation link to finish setup.",
+  confirmed: "Email confirmed. You can sign in now.",
 };
 
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; next?: string; notice?: string }>;
 }) {
   const params = await searchParams;
 
   await redirectPublicAuthPageToAppDomain("/sign-in", {
     error: params.error,
     next: params.next,
+    notice: params.notice,
   });
 
   const nextPath =
@@ -41,6 +47,7 @@ export default async function SignInPage({
       : APP_DASHBOARD_URL;
 
   const errorMessage = params.error ? errorMessages[params.error] : null;
+  const noticeMessage = params.notice ? noticeMessages[params.notice] : null;
 
   return (
     <AuthShell title="Sign in" subtitle="Access your breeder workspace.">
@@ -48,6 +55,12 @@ export default async function SignInPage({
         {errorMessage ? (
           <div className="rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
             {errorMessage}
+          </div>
+        ) : null}
+
+        {noticeMessage ? (
+          <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            {noticeMessage}
           </div>
         ) : null}
 
