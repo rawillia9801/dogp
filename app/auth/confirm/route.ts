@@ -1,6 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import type { EmailOtpType } from "@supabase/supabase-js";
-import { createSupabaseServerClient } from "@/lib/supabase";
 
 const APP_DOMAIN = "app.mydogportal.site";
 const PUBLIC_ROOT_DOMAIN = "mydogportal.site";
@@ -9,50 +7,19 @@ const DEFAULT_LOCAL_APP_URL = "http://localhost:3000";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get("code");
-  const tokenHash = requestUrl.searchParams.get("token_hash");
-  const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
+  const appBaseUrl = getAppBaseUrl(request);
+  const callbackUrl = new URL("/auth/callback", appBaseUrl);
   const nextPath = sanitizeNextPath(requestUrl.searchParams.get("next")) ?? "/dashboard";
-  const appBaseUrl = await getAppBaseUrl(request);
 
-  const successUrl = new URL(nextPath, appBaseUrl);
-  const failureUrl = new URL("/sign-in", appBaseUrl);
-  failureUrl.searchParams.set("error", "confirm");
-  failureUrl.searchParams.set("next", nextPath);
+  callbackUrl.searchParams.set("next", nextPath);
 
-  const supabase = await createSupabaseServerClient();
-
-  if (!supabase) {
-    failureUrl.searchParams.set("error", "config");
-    return NextResponse.redirect(failureUrl);
-  }
-
-  if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-    if (!error) {
-      return NextResponse.redirect(successUrl);
+  requestUrl.searchParams.forEach((value, key) => {
+    if (key !== "next") {
+      callbackUrl.searchParams.set(key, value);
     }
+  });
 
-    console.error("Supabase auth code exchange failed", error);
-    return NextResponse.redirect(failureUrl);
-  }
-
-  if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash: tokenHash,
-      type,
-    });
-
-    if (!error) {
-      return NextResponse.redirect(successUrl);
-    }
-
-    console.error("Supabase auth OTP verification failed", error);
-    return NextResponse.redirect(failureUrl);
-  }
-
-  return NextResponse.redirect(failureUrl);
+  return NextResponse.redirect(callbackUrl);
 }
 
 function sanitizeNextPath(value: string | null) {
@@ -82,7 +49,7 @@ function sanitizeNextPath(value: string | null) {
   return trimmed;
 }
 
-async function getAppBaseUrl(request: NextRequest) {
+function getAppBaseUrl(request: NextRequest) {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim();
 
   if (envUrl) {
