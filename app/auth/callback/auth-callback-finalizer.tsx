@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { createSupabaseClient } from "@/lib/supabase-client";
 
 export function AuthCallbackFinalizer() {
   const router = useRouter();
@@ -10,7 +10,7 @@ export function AuthCallbackFinalizer() {
 
   useEffect(() => {
     const finalize = async () => {
-      const supabase = createSupabaseBrowserClient();
+      const supabase = createSupabaseClient();
 
       if (!supabase) {
         router.replace("/sign-in?error=config");
