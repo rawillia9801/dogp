@@ -1,4 +1,6 @@
-"use server";
+from pathlib import Path
+
+code = r'''"use server";
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -32,23 +34,40 @@ export type SubscriptionContext = {
 const DEVELOPMENT_USER_ID = "00000000-0000-4000-8000-000000000001";
 const DEVELOPMENT_ORGANIZATION_ID = "00000000-0000-4000-8000-000000000002";
 
+const PUBLIC_ROOT_DOMAIN = "mydogportal.site";
+const PUBLIC_WWW_DOMAIN = "www.mydogportal.site";
+const APP_DOMAIN = "app.mydogportal.site";
+const DEFAULT_LOCAL_APP_URL = "http://localhost:3000";
+
 export async function signInAction(formData: FormData) {
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const nextPath = sanitizeNextPath(formData.get("next"));
+
+  /*
+    Important:
+    Supabase auth cookies are written for the domain that performs the sign-in.
+    If a user submits the login form from www.mydogportal.site, the session may not
+    be available on app.mydogportal.site. Force the actual sign-in flow to happen
+    on app.mydogportal.site before attempting Supabase auth.
+  */
+  if (await shouldForceAuthToAppDomain()) {
+    redirect(await buildAppAuthUrl("/sign-in", nextPath));
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    redirect(buildAuthRedirect("/sign-in", "config", nextPath));
+    redirect(await buildAuthRedirect("/sign-in", "config", nextPath));
   }
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect(buildAuthRedirect("/sign-in", "signin", nextPath));
+    redirect(await buildAuthRedirect("/sign-in", "signin", nextPath));
   }
 
-  redirect(nextPath ?? await getDefaultSignedInDestination());
+  redirect(nextPath ?? (await getDefaultSignedInDestination()));
 }
 
 export async function signUpAction(formData: FormData) {
@@ -56,10 +75,19 @@ export async function signUpAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const nextPath = sanitizeNextPath(formData.get("next"));
+
+  /*
+    Same rule as sign-in: create the Supabase auth session on the app subdomain,
+    not the public marketing domain.
+  */
+  if (await shouldForceAuthToAppDomain()) {
+    redirect(await buildAppAuthUrl("/sign-up", nextPath));
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    redirect(buildAuthRedirect("/sign-up", "config", nextPath));
+    redirect(await buildAuthRedirect("/sign-up", "config", nextPath));
   }
 
   const { data, error } = await supabase.auth.signUp({
@@ -71,13 +99,13 @@ export async function signUpAction(formData: FormData) {
   });
 
   if (error || !data.user) {
-    redirect(buildAuthRedirect("/sign-up", "signup", nextPath));
+    redirect(await buildAuthRedirect("/sign-up", "signup", nextPath));
   }
 
   const admin = createSupabaseAdminClient();
 
   if (!admin) {
-    redirect(buildAuthRedirect("/sign-up", "config", nextPath));
+    redirect(await buildAuthRedirect("/sign-up", "config", nextPath));
   }
 
   const { data: plan } = await admin
@@ -102,7 +130,7 @@ export async function signUpAction(formData: FormData) {
     .single();
 
   if (organizationError || !organization) {
-    redirect(buildAuthRedirect("/sign-up", "organization", nextPath));
+    redirect(await buildAuthRedirect("/sign-up", "organization", nextPath));
   }
 
   const { error: membershipError } = await admin.from("organization_users").insert({
@@ -127,20 +155,20 @@ export async function signUpAction(formData: FormData) {
     }
   }
 
-  redirect(nextPath ?? await getDefaultSignedInDestination());
+  redirect(nextPath ?? (await getDefaultSignedInDestination()));
 }
 
 export async function logoutAction() {
   const supabase = await createSupabaseServerClient();
   await supabase?.auth.signOut();
-  redirect("/");
+  redirect(await getPublicBaseUrl());
 }
 
 export async function requireOrganization() {
   const organization = await getAuthenticatedOrganization();
 
   if (!organization) {
-    redirect("/sign-in");
+    redirect(await buildAppAuthUrl("/sign-in", "/dashboard"));
   }
 
   return organization;
@@ -153,7 +181,7 @@ export async function requireAdminOrganization() {
     return organization;
   }
 
-  redirect("/sign-in");
+  redirect(await buildAppAuthUrl("/sign-in", "/dashboard"));
 }
 
 export async function getOptionalAdminOrganization() {
@@ -287,7 +315,9 @@ export async function getSubscription() {
   return getSubscriptionForOrganization(organization.id);
 }
 
-export async function getSubscriptionForOrganization(organizationId: string): Promise<SubscriptionContext> {
+export async function getSubscriptionForOrganization(
+  organizationId: string,
+): Promise<SubscriptionContext> {
   const fallback = {
     status: "trialing",
     planKey: "starter" as const,
@@ -336,6 +366,24 @@ function sanitizeNextPath(value: FormDataEntryValue | null) {
 
   const trimmed = value.trim();
 
+  if (!trimmed) {
+    return null;
+  }
+
+  /*
+    Keep app redirects internal to the app shell. Do not carry full cross-domain
+    URLs through the Supabase server action because the session cookie must be
+    created on the app domain.
+  */
+  if (trimmed === `https://${APP_DOMAIN}` || trimmed === `https://${APP_DOMAIN}/`) {
+    return "/dashboard";
+  }
+
+  if (trimmed.startsWith(`https://${APP_DOMAIN}/`)) {
+    const url = new URL(trimmed);
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
   if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
     return null;
   }
@@ -343,11 +391,19 @@ function sanitizeNextPath(value: FormDataEntryValue | null) {
   return trimmed;
 }
 
-function buildAuthRedirect(pathname: "/sign-in" | "/sign-up", error: string, nextPath: string | null) {
+async function buildAuthRedirect(
+  pathname: "/sign-in" | "/sign-up",
+  error: string,
+  nextPath: string | null,
+) {
   const params = new URLSearchParams({ error });
 
   if (nextPath) {
     params.set("next", nextPath);
+  }
+
+  if (await shouldUseAbsoluteAppAuthUrls()) {
+    return `${await getAppBaseUrl()}${pathname}?${params.toString()}`;
   }
 
   return `${pathname}?${params.toString()}`;
@@ -365,38 +421,98 @@ function buildOrganizationSlug(name: string) {
   return `${fallback}-${Date.now().toString(36)}`;
 }
 
+async function shouldForceAuthToAppDomain() {
+  if (process.env.NODE_ENV === "development") {
+    return false;
+  }
+
+  const host = await getCurrentHost();
+  return host === PUBLIC_ROOT_DOMAIN || host === PUBLIC_WWW_DOMAIN;
+}
+
+async function shouldUseAbsoluteAppAuthUrls() {
+  if (process.env.NODE_ENV === "development") {
+    return false;
+  }
+
+  const host = await getCurrentHost();
+  return host === PUBLIC_ROOT_DOMAIN || host === PUBLIC_WWW_DOMAIN;
+}
+
+async function getCurrentHost() {
+  const headerStore = await headers();
+  return (headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "")
+    .split(":")[0]
+    .toLowerCase();
+}
+
 async function getAppBaseUrl() {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const envUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    process.env.APP_URL?.trim();
 
   if (envUrl) {
     return envUrl.replace(/\/+$/, "");
   }
 
+  if (process.env.NODE_ENV !== "development") {
+    return `https://${APP_DOMAIN}`;
+  }
+
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
-  const protocol = headerStore.get("x-forwarded-proto") ?? "https";
+  const protocol = headerStore.get("x-forwarded-proto") ?? "http";
 
   if (host) {
     return `${protocol}://${host}`;
   }
 
-  return "http://localhost:3000";
+  return DEFAULT_LOCAL_APP_URL;
+}
+
+async function getPublicBaseUrl() {
+  const envUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+    process.env.SITE_URL?.trim();
+
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+
+  if (process.env.NODE_ENV !== "development") {
+    return `https://${PUBLIC_WWW_DOMAIN}`;
+  }
+
+  return "/";
+}
+
+async function buildAppAuthUrl(pathname: "/sign-in" | "/sign-up", nextPath: string | null) {
+  const params = new URLSearchParams();
+
+  if (nextPath) {
+    params.set("next", nextPath);
+  }
+
+  const query = params.toString();
+  return `${await getAppBaseUrl()}${pathname}${query ? `?${query}` : ""}`;
 }
 
 async function getDefaultSignedInDestination() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const appUrl = await getAppBaseUrl();
+  const host = await getCurrentHost();
 
-  if (appUrl) {
-    return `${appUrl.replace(/\/+$/, "")}/dashboard`;
-  }
+  if (process.env.NODE_ENV !== "development") {
+    if (host === APP_DOMAIN) {
+      return "/dashboard";
+    }
 
-  const headerStore = await headers();
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "";
-  const protocol = headerStore.get("x-forwarded-proto") ?? "https";
-
-  if (host === "mydogportal.site" || host === "www.mydogportal.site") {
-    return `${protocol}://app.mydogportal.site/dashboard`;
+    return `${appUrl}/dashboard`;
   }
 
   return "/dashboard";
 }
+'''
+
+path = Path("/mnt/data/lib-auth-full-replacement.ts")
+path.write_text(code)
+path
