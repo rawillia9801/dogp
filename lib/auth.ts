@@ -40,25 +40,24 @@ const DEFAULT_LOCAL_APP_URL = "http://localhost:3000";
 export async function signInAction(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const nextPath = sanitizeNextPath(formData.get("next"));
-
-  if (await shouldForceAuthToAppDomain()) {
-    redirect(await buildAppAuthUrl("/sign-in", nextPath));
-  }
+  const nextPath = sanitizeNextPath(formData.get("next")) ?? "/dashboard";
 
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    redirect(await buildAuthRedirect("/sign-in", "config", nextPath));
+    redirect(`/sign-in?error=config&next=${encodeURIComponent(nextPath)}`);
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (error) {
-    redirect(await buildAuthRedirect("/sign-in", "signin", nextPath));
+    redirect(`/sign-in?error=signin&next=${encodeURIComponent(nextPath)}`);
   }
 
-  redirect(nextPath ?? (await getDefaultSignedInDestination()));
+  redirect(nextPath);
 }
 
 export async function signUpAction(formData: FormData) {
