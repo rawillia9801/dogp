@@ -70,6 +70,7 @@ export const pricingTiers = [
     price: "$29",
     description: "For when you only need contracts, forms, and polished buyer paperwork.",
     features: ["Smart document templates", "PDF export", "Buyer application forms", "Deposit agreements"],
+    href: "/sign-up?plan=documents",
   },
   {
     name: "Breeder OS",
@@ -77,12 +78,14 @@ export const pricingTiers = [
     description: "For when you want one place to organize puppies, buyers, payments, and records.",
     features: ["Dog and litter records", "Buyer management", "Payment tracking", "Basic portal access"],
     highlighted: true,
+    href: "/sign-up?plan=breeder-os",
   },
   {
     name: "Full System",
     price: "$99",
     description: "For when you want the complete portal, documents, website, payments, and Chi Chi.",
     features: ["Everything in Breeder OS", "Smart Documents", "Breeder website", "Chi Chi Assistant"],
+    href: "/sign-up?plan=full-system",
   },
 ];
 
@@ -262,12 +265,14 @@ export function PricingSection() {
 
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         {pricingTiers.map((tier) => (
-          <div
+          <a
             key={tier.name}
-            className={`rounded-[2rem] border p-7 shadow-sm ${
+            href={tier.href}
+            aria-label={`Choose ${tier.name}`}
+            className={`group block rounded-[2rem] border p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-xl ${
               tier.highlighted
-                ? "border-[#2F4F3E] bg-[#2F4F3E] text-white shadow-xl shadow-[#2F4F3E]/20"
-                : "border-[#E5DED2] bg-white"
+                ? "border-[#2F4F3E] bg-[#2F4F3E] text-white shadow-xl shadow-[#2F4F3E]/20 hover:shadow-[#2F4F3E]/30"
+                : "border-[#E5DED2] bg-white hover:shadow-[#2F4F3E]/10"
             }`}
           >
             <p className={`text-lg font-black ${tier.highlighted ? "text-white" : "text-[#2F4F3E]"}`}>
@@ -292,16 +297,16 @@ export function PricingSection() {
               ))}
             </div>
 
-            <button
-              className={`mt-8 w-full rounded-2xl px-5 py-4 text-sm font-black transition ${
+            <span
+              className={`mt-8 block w-full rounded-2xl px-5 py-4 text-center text-sm font-black transition ${
                 tier.highlighted
-                  ? "bg-white text-[#2F4F3E] hover:bg-[#F4EFE6]"
-                  : "bg-[#F4EFE6] text-[#2F4F3E] hover:bg-[#E9F0E7]"
+                  ? "bg-white text-[#2F4F3E] group-hover:bg-[#F4EFE6]"
+                  : "bg-[#F4EFE6] text-[#2F4F3E] group-hover:bg-[#E9F0E7]"
               }`}
             >
               Choose {tier.name}
-            </button>
-          </div>
+            </span>
+          </a>
         ))}
       </div>
     </section>
