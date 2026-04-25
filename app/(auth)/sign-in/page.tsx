@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { signInAction } from "@/lib/auth";
 import { AuthShell } from "@/components/layout/auth-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -9,6 +11,9 @@ export const metadata: Metadata = {
 };
 
 const APP_DASHBOARD_URL = "https://app.mydogportal.site/dashboard";
+const APP_DOMAIN = "app.mydogportal.site";
+const PUBLIC_ROOT_DOMAIN = "mydogportal.site";
+const PUBLIC_WWW_DOMAIN = "www.mydogportal.site";
 
 const errorMessages: Record<string, string> = {
   config: "Authentication is not fully configured yet. Add the missing server settings and try again.",
@@ -24,6 +29,11 @@ export default async function SignInPage({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const params = await searchParams;
+
+  await redirectPublicAuthPageToAppDomain("/sign-in", {
+    error: params.error,
+    next: params.next,
+  });
 
   const nextPath =
     typeof params.next === "string" && params.next.trim().length > 0
@@ -73,4 +83,33 @@ export default async function SignInPage({
       </p>
     </AuthShell>
   );
+}
+
+async function redirectPublicAuthPageToAppDomain(
+  pathname: "/sign-in",
+  params: Record<string, string | undefined>,
+) {
+  if (process.env.NODE_ENV === "development") {
+    return;
+  }
+
+  const headerStore = await headers();
+  const host = (headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "")
+    .split(":")[0]
+    .toLowerCase();
+
+  if (host !== PUBLIC_ROOT_DOMAIN && host !== PUBLIC_WWW_DOMAIN) {
+    return;
+  }
+
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      query.set(key, value);
+    }
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim() || `https://${APP_DOMAIN}`;
+  redirect(`${appUrl.replace(/\/+$/, "")}${pathname}${query.size ? `?${query.toString()}` : ""}`);
 }
