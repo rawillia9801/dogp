@@ -29,6 +29,7 @@ import {
   Send,
   X,
   Minimize2,
+  PlayCircle,
 } from "lucide-react";
 
 const ASSISTANT_NAME = "BreederBuddy AI";
@@ -122,6 +123,39 @@ const testimonials = [
     name: "Priya L.",
     role: "Cavalier Breeder · California",
     initials: "PL",
+  },
+];
+
+const previewPuppies = [
+  {
+    name: "Ruby",
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1583511655826-05700442b31b?auto=format&fit=crop&w=1000&q=85",
+    breed: "Cavalier King Charles Spaniel",
+    weight: "4.2 lbs",
+    dob: "March 2024",
+    color: "#E9F0E7",
+    textColor: "#2F4F3E",
+  },
+  {
+    name: "Willow",
+    status: "Reserved",
+    image: "https://images.unsplash.com/photo-1600804340584-c7db2eacf0bf?auto=format&fit=crop&w=1000&q=85",
+    breed: "Cavalier King Charles Spaniel",
+    weight: "5.1 lbs",
+    dob: "March 2024",
+    color: "#FEF3CD",
+    textColor: "#8B6914",
+  },
+  {
+    name: "Theo",
+    status: "Available",
+    image: "https://images.unsplash.com/photo-1593134257782-e89567b7718a?auto=format&fit=crop&w=1000&q=85",
+    breed: "Cavalier King Charles Spaniel",
+    weight: "4.8 lbs",
+    dob: "April 2024",
+    color: "#E9F0E7",
+    textColor: "#2F4F3E",
   },
 ];
 
@@ -287,10 +321,17 @@ export default function HomePage() {
             </a>
 
             <a
+              href="/login"
+              className="rounded-full border border-[#D8CCB7] bg-white px-5 py-2.5 text-sm font-black text-[#2F4F3E] shadow-sm transition hover:bg-[#F4EFE6]"
+            >
+              Login
+            </a>
+
+            <a
               href="#pricing"
               className="rounded-full bg-[#2F4F3E] px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-[#253F32] hover:shadow-md"
             >
-              Start Your Portal
+              Start Your Trial
             </a>
           </div>
         </div>
@@ -321,7 +362,7 @@ export default function HomePage() {
                 href="#pricing"
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2F4F3E] px-7 py-4 text-base font-black text-white shadow-lg shadow-[#2F4F3E]/20 transition hover:-translate-y-0.5 hover:bg-[#253F32]"
               >
-                Build My Breeder Portal
+                Start Your 14-Day Trial
                 <ArrowRight className="h-5 w-5" />
               </a>
               <button
@@ -329,8 +370,8 @@ export default function HomePage() {
                 onClick={() => setChatOpen(true)}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#D8CCB7] bg-white px-7 py-4 text-base font-black text-[#2F4F3E] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#F4EFE6]"
               >
-                Ask {ASSISTANT_NAME}
-                <MessageCircle className="h-5 w-5" />
+                See How It Works
+                <PlayCircle className="h-5 w-5" />
               </button>
             </div>
 
@@ -353,15 +394,6 @@ export default function HomePage() {
             <div className="absolute inset-0 scale-95 rounded-[2rem] bg-[#2F4F3E]/10 blur-3xl" />
 
             <div className="relative rounded-[2rem] border border-[#E5DED2] bg-white p-4 shadow-2xl shadow-[#2F4F3E]/15">
-              <div className="mb-3 flex items-center gap-2 px-1">
-                <div className="h-3 w-3 rounded-full bg-[#FF5F57]" />
-                <div className="h-3 w-3 rounded-full bg-[#FEBC2E]" />
-                <div className="h-3 w-3 rounded-full bg-[#28C840]" />
-                <div className="ml-3 flex-1 rounded-full bg-[#F1EFE9] px-3 py-1 text-xs font-bold text-[#5B6B73]">
-                  app.mydogportal.site/dashboard
-                </div>
-              </div>
-
               <div className="rounded-[1.5rem] bg-[#F8F7F3] p-5">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
@@ -598,15 +630,6 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 rounded-[2rem] border border-[#E5DED2] bg-white p-5 shadow-xl shadow-[#2F4F3E]/10">
-            <div className="mb-4 flex items-center gap-2 px-1">
-              <div className="h-3 w-3 rounded-full bg-[#FF5F57]" />
-              <div className="h-3 w-3 rounded-full bg-[#FEBC2E]" />
-              <div className="h-3 w-3 rounded-full bg-[#28C840]" />
-              <div className="ml-3 flex-1 rounded-full bg-[#F1EFE9] px-3 py-1 text-xs font-bold text-[#5B6B73]">
-                mydogportal.site
-              </div>
-            </div>
-
             <div className="rounded-[1.5rem] bg-[#F8F7F3] p-6">
               <div className="mb-6 flex items-center justify-between border-b border-[#E5DED2] pb-5">
                 <div className="flex items-center gap-3">
@@ -632,23 +655,23 @@ export default function HomePage() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-3">
-                {[
-                  { name: "Ruby", status: "Available", color: "#E9F0E7", textColor: "#2F4F3E", weight: "4.2 lbs", dob: "March 2024" },
-                  { name: "Willow", status: "Reserved", color: "#FEF3CD", textColor: "#8B6914", weight: "5.1 lbs", dob: "March 2024" },
-                  { name: "Theo", status: "Available", color: "#E9F0E7", textColor: "#2F4F3E", weight: "4.8 lbs", dob: "April 2024" },
-                ].map((puppy) => (
+                {previewPuppies.map((puppy) => (
                   <div key={puppy.name} className="overflow-hidden rounded-3xl border border-[#E5DED2] bg-white shadow-sm card-hover">
-                    <div className="relative flex h-40 items-center justify-center overflow-hidden bg-gradient-to-br from-[#E9F0E7] to-[#D4E5D0]">
-                      <PawPrint className="h-16 w-16 text-[#2F4F3E]/30" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-                      <div className="absolute right-3 top-3 rounded-full px-2.5 py-1 text-xs font-black" style={{ background: puppy.color, color: puppy.textColor }}>
+                    <div className="relative h-44 overflow-hidden bg-[#E9F0E7]">
+                      <img
+                        src={puppy.image}
+                        alt={`${puppy.name} the ${puppy.breed}`}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                      <div className="absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-black shadow-sm" style={{ background: puppy.color, color: puppy.textColor }}>
                         {puppy.status}
                       </div>
                     </div>
 
                     <div className="p-5">
                       <p className="font-display text-xl font-black">{puppy.name}</p>
-                      <p className="mt-0.5 text-sm text-[#5B6B73]">Cavalier King Charles Spaniel</p>
+                      <p className="mt-0.5 text-sm text-[#5B6B73]">{puppy.breed}</p>
 
                       <div className="mt-3 grid grid-cols-2 gap-2">
                         <div className="rounded-lg bg-[#F8F7F3] px-3 py-2">
@@ -807,7 +830,7 @@ export default function HomePage() {
               href="#pricing"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-7 py-4 text-base font-black text-[#2F4F3E] shadow-lg transition hover:-translate-y-0.5 hover:bg-[#F4EFE6]"
             >
-              Start Building
+              Start Your Trial
               <ArrowRight className="h-5 w-5" />
             </a>
           </div>
