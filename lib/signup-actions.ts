@@ -48,7 +48,7 @@ export async function signUpWithPlanAction(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${await getAppBaseUrl()}/auth/confirm?next=/dashboard`,
+      emailRedirectTo: `${await getAppBaseUrl()}/auth/callback?next=/dashboard`,
     },
   });
 
@@ -109,7 +109,7 @@ export async function signUpWithPlanAction(formData: FormData) {
     }
   }
 
-  redirect(nextPath ?? (await getDefaultSignedInDestination()));
+  redirect(`/sign-in?notice=check_email&next=${encodeURIComponent(nextPath ?? "/dashboard")}`);
 }
 
 function normalizeSignupPlan(value: FormDataEntryValue | string | null | undefined): PlanKey {
@@ -239,19 +239,4 @@ async function buildAppAuthUrl(pathname: "/sign-up", nextPath: string | null, pl
 
   const query = params.toString();
   return `${await getAppBaseUrl()}${pathname}${query ? `?${query}` : ""}`;
-}
-
-async function getDefaultSignedInDestination() {
-  const appUrl = await getAppBaseUrl();
-  const host = await getCurrentHost();
-
-  if (process.env.NODE_ENV !== "development") {
-    if (host === APP_DOMAIN) {
-      return "/dashboard";
-    }
-
-    return `${appUrl}/dashboard`;
-  }
-
-  return "/dashboard";
 }
