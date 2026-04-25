@@ -52,8 +52,12 @@ export async function signUpWithPlanAction(formData: FormData) {
     },
   });
 
-  if (error || !data.user) {
-    redirect(await buildAuthRedirect("/sign-up", "signup", nextPath, selectedPlanKey));
+  if (error) {
+    redirect(await buildAuthRedirect("/sign-up", classifySignupError(error), nextPath, selectedPlanKey));
+  }
+
+  if (!data.user) {
+    redirect(await buildAuthRedirect("/sign-up", "signup_no_user", nextPath, selectedPlanKey));
   }
 
   const admin = createSupabaseAdminClient();
@@ -110,6 +114,33 @@ export async function signUpWithPlanAction(formData: FormData) {
   }
 
   redirect(`/sign-in?notice=check_email&next=${encodeURIComponent(nextPath ?? "/dashboard")}`);
+}
+
+function classifySignupError(error: { code?: string; status?: number; message?: string | null }) {
+  const code = (error.code ?? "").toLowerCase();
+  const message = (error.message ?? "").toLowerCase();
+
+  if (code.includes("user_already_exists") || message.includes("already registered") || message.includes("already exists")) {
+    return "signup_exists";
+  }
+
+  if (code.includes("weak_password") || message.includes("password")) {
+    return "signup_password";
+  }
+
+  if (message.includes("invalid") && message.includes("email")) {
+    return "signup_email";
+  }
+
+  if (error.status === 429 || message.includes("rate") || message.includes("too many")) {
+    return "signup_rate_limit";
+  }
+
+  if (message.includes("disabled") || message.includes("not allowed")) {
+    return "signup_disabled";
+  }
+
+  return "signup";
 }
 
 function normalizeSignupPlan(value: FormDataEntryValue | string | null | undefined): PlanKey {
