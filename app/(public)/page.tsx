@@ -24,8 +24,8 @@ import {
   Zap,
   Lock,
   TrendingUp,
-  Settings,
-  UserCircle,
+
+
   Send,
   X,
   Minimize2,
@@ -279,63 +279,6 @@ export default function HomePage() {
         }
       `}</style>
 
-      <header className="sticky top-0 z-40 border-b border-[#E5DED2] bg-[#F8F7F3]/95 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-6 py-4">
-          <a href="/" className="flex items-center gap-3">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2F4F3E] text-white shadow-md">
-              <PawPrint className="h-6 w-6" />
-              <span className="absolute -right-1 -top-1 rounded-full border-2 border-[#F8F7F3] bg-[#C6A96B] px-1.5 py-0.5 text-[9px] font-black text-white">
-                OS
-              </span>
-            </div>
-            <div>
-              <p className="font-display text-xl font-black tracking-tight text-[#2F4F3E]">MyDogPortal</p>
-              <p className="text-xs font-bold text-[#5B6B73]">Dog Breeder Web · Docs · Portal</p>
-            </div>
-          </a>
-
-          <nav className="hidden items-center gap-7 text-sm font-bold text-[#5B6B73] lg:flex">
-            <a href="#features" className="transition hover:text-[#2F4F3E]">Features</a>
-            <a href="#assistant" className="transition hover:text-[#2F4F3E]">{ASSISTANT_NAME}</a>
-            <a href="#website" className="transition hover:text-[#2F4F3E]">Website</a>
-            <a href="#pricing" className="transition hover:text-[#2F4F3E]">Pricing</a>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <a
-              href="/settings"
-              aria-label="Settings"
-              className="hidden items-center gap-2 rounded-full border border-[#D8CCB7] bg-white px-3.5 py-2.5 text-sm font-black text-[#2F4F3E] shadow-sm transition hover:bg-[#F4EFE6] sm:inline-flex"
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </a>
-
-            <a
-              href="/profile"
-              aria-label="Profile"
-              className="hidden items-center gap-2 rounded-full border border-[#D8CCB7] bg-white px-3.5 py-2.5 text-sm font-black text-[#2F4F3E] shadow-sm transition hover:bg-[#F4EFE6] sm:inline-flex"
-            >
-              <UserCircle className="h-4 w-4" />
-              Profile
-            </a>
-
-            <a
-              href="/login"
-              className="rounded-full border border-[#D8CCB7] bg-white px-5 py-2.5 text-sm font-black text-[#2F4F3E] shadow-sm transition hover:bg-[#F4EFE6]"
-            >
-              Login
-            </a>
-
-            <a
-              href="#pricing"
-              className="rounded-full bg-[#2F4F3E] px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:bg-[#253F32] hover:shadow-md"
-            >
-              Start Your Trial
-            </a>
-          </div>
-        </div>
-      </header>
 
       <section className="relative overflow-hidden">
         <div className="hero-blob absolute left-[-10%] top-[-5%] h-[500px] w-[500px] bg-[#A8BFA3]/20" />
