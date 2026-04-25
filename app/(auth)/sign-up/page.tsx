@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/layout/auth-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { signUpWithPlanAction } from "@/lib/signup-actions";
@@ -7,6 +9,10 @@ import { signUpWithPlanAction } from "@/lib/signup-actions";
 export const metadata: Metadata = {
   title: "Sign Up",
 };
+
+const APP_DOMAIN = "app.mydogportal.site";
+const PUBLIC_ROOT_DOMAIN = "mydogportal.site";
+const PUBLIC_WWW_DOMAIN = "www.mydogportal.site";
 
 const errorMessages: Record<string, string> = {
   config: "Authentication is not fully configured yet. Add the missing server settings and try again.",
@@ -20,18 +26,35 @@ const signupPlans = [
   { value: "elite", label: "Full System — $99/mo" },
 ];
 
+const pricingPlanToSignupPlan: Record<string, string> = {
+  documents: "starter",
+  starter: "starter",
+  "breeder-os": "pro",
+  breeder_os: "pro",
+  pro: "pro",
+  professional: "pro",
+  "full-system": "elite",
+  full_system: "elite",
+  elite: "elite",
+  premium: "elite",
+};
+
 export default async function SignUpPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; next?: string; plan?: string }>;
 }) {
   const params = await searchParams;
+  const selectedPlan = normalizeSignupPlan(params.plan);
+
+  await redirectPublicAuthPageToAppDomain("/sign-up", {
+    error: params.error,
+    next: params.next,
+    plan: selectedPlan,
+  });
+
   const nextPath = typeof params.next === "string" ? params.next : "";
   const errorMessage = params.error ? errorMessages[params.error] : null;
-  const selectedPlan =
-    typeof params.plan === "string" && ["starter", "pro", "elite"].includes(params.plan)
-      ? params.plan
-      : "starter";
 
   return (
     <AuthShell title="Start trial" subtitle="Create your owner account and breeder organization.">
@@ -74,4 +97,41 @@ export default async function SignUpPage({
       </p>
     </AuthShell>
   );
+}
+
+function normalizeSignupPlan(value: string | undefined) {
+  if (!value) {
+    return "starter";
+  }
+
+  return pricingPlanToSignupPlan[value.trim().toLowerCase()] ?? "starter";
+}
+
+async function redirectPublicAuthPageToAppDomain(
+  pathname: "/sign-up",
+  params: Record<string, string | undefined>,
+) {
+  if (process.env.NODE_ENV === "development") {
+    return;
+  }
+
+  const headerStore = await headers();
+  const host = (headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "")
+    .split(":")[0]
+    .toLowerCase();
+
+  if (host !== PUBLIC_ROOT_DOMAIN && host !== PUBLIC_WWW_DOMAIN) {
+    return;
+  }
+
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value) {
+      query.set(key, value);
+    }
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim() || `https://${APP_DOMAIN}`;
+  redirect(`${appUrl.replace(/\/+$/, "")}${pathname}${query.size ? `?${query.toString()}` : ""}`);
 }
