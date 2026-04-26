@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDogsRegistryData } from "@/lib/dogs-data";
 import { deleteDogRecord } from "./actions";
+import { DeleteDogButton } from "./delete-dog-button";
 
 export default async function DogsRegistryPage() {
   const data = await getDogsRegistryData();
@@ -63,7 +64,7 @@ export default async function DogsRegistryPage() {
                   <Link href={`/dashboard/dogs/${dog.id}/edit`} className="rounded-full border border-[#d8cfbf] bg-[#fcfbf8] px-4 py-2 text-center text-xs font-semibold">Edit</Link>
                   <form action={deleteDogRecord}>
                     <input type="hidden" name="dog_id" value={dog.id} />
-                    <button type="submit" className="w-full rounded-full bg-[#8b2e2e] text-white px-4 py-2 text-xs font-semibold">Delete</button>
+                    <DeleteDogButton />
                   </form>
                 </div>
               </div>
