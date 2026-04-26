@@ -38,7 +38,6 @@ export async function createDogRecord(formData: FormData) {
     color: clean(formData.get("color")) || null,
     coat: clean(formData.get("coat")) || null,
     registry: clean(formData.get("registry")) || null,
-    bloodline: clean(formData.get("bloodline")) || null,
     breeding_eligibility: clean(formData.get("breeding_eligibility")) || "pending",
     proven_status: clean(formData.get("proven_status")) || null,
     notes: clean(formData.get("notes")) || null,
