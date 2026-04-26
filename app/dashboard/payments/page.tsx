@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { AlertTriangle, CreditCard, DollarSign, Plus, Receipt } from "lucide-react";
+import { AlertTriangle, CreditCard, DollarSign, Receipt } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard-data";
+import { getPaymentsWorkspaceData } from "@/lib/ops-data";
 
 export default async function PaymentsPage() {
   const data = await getDashboardData();
+  const payments = await getPaymentsWorkspaceData();
 
   return (
     <main className="min-h-screen bg-[#f6f3ec] text-[#132238] p-6 md:p-10">
@@ -20,24 +22,12 @@ export default async function PaymentsPage() {
           <MoneyCard label="Payment Plans" value={data.counts.buyers} icon={CreditCard} />
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-2">
-          <div className="rounded-[30px] border border-[#e2d9ca] bg-white p-6 shadow-[0_20px_60px_rgba(19,34,56,0.05)]">
-            <p className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Collections board</p>
-            <div className="mt-5 space-y-3">
-              <FinanceRow title="Incoming deposits" text="Reservation and waitlist payments populate here." />
-              <FinanceRow title="Installment plans" text="Scheduled buyer installments and due dates populate here." />
-              <FinanceRow title="Overdue intervention" text="Late accounts requiring breeder follow-up populate here." />
-            </div>
-          </div>
-          <div className="rounded-[30px] border border-[#e2d9ca] bg-gradient-to-br from-[#2f5d3f] to-[#466f54] p-6 text-white shadow-xl">
-            <p className="font-bold">Payment intelligence layer active</p>
-            <p className="mt-3 text-white/80">This page is now positioned as a finance workspace rather than a raw transactions screen. Next layer will include buyer-by-buyer receivable cards and quick collect actions.</p>
-            <Link href="/dashboard/payments/new" className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-bold text-[#2f5d3f]"><Plus className="h-4 w-4" />Log breeder payment</Link>
-          </div>
+        <section className="rounded-[30px] border border-[#e2d9ca] bg-white p-6 shadow-[0_20px_60px_rgba(19,34,56,0.05)]">
+          <p className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Recent breeder payments</p>
+          {payments.length === 0 ? <div className="mt-6 rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-6 text-center"><p className="font-black">No payments logged yet</p></div> : <div className="mt-5 space-y-4">{payments.map((payment: any) => <div key={payment.id} className="rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4"><div><p className="text-xl font-black">{payment.buyers.full_name}</p><p className="text-sm text-[#6b7785] mt-1">{payment.payment_date}</p></div><div className="flex gap-3 flex-wrap"><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold uppercase">{payment.type}</span><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold uppercase">{payment.method}</span><span className="rounded-full bg-[#eef5eb] px-4 py-2 text-sm font-black text-[#2f5d3f]">${payment.amount}</span></div></div>)}</div>}
         </section>
       </div>
     </main>
   );
 }
 function MoneyCard({ label, value, icon: Icon }: { label: string; value: number | string; icon: typeof DollarSign }) { return <div className="rounded-[24px] border border-[#e2d9ca] bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><p className="text-[11px] uppercase tracking-[0.22em] text-[#8a7757] font-semibold">{label}</p><Icon className="h-5 w-5 text-[#2f5d3f]" /></div><p className="text-4xl font-black mt-3" style={{ fontFamily: 'Georgia, serif' }}>{value}</p></div>; }
-function FinanceRow({ title, text }: { title: string; text: string }) { return <div className="rounded-2xl border border-[#eee5d8] bg-[#fcfbf8] p-5"><p className="font-black">{title}</p><p className="text-sm mt-2 text-[#6b7785]">{text}</p></div>; }
