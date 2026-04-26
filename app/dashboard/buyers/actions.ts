@@ -48,6 +48,79 @@ export async function createBuyerRecord(formData: FormData) {
   redirect("/dashboard/buyers?created=1");
 }
 
+export async function updateBuyerRecord(formData: FormData) {
+  const admin = createSupabaseAdminClient();
+  const organizationId = await getCurrentOrganizationId();
+  const buyerId = clean(formData.get("buyer_id"));
+
+  if (!admin || !organizationId) {
+    redirect(`/dashboard/buyers/${buyerId}/edit?error=config`);
+  }
+
+  if (!buyerId) {
+    redirect("/dashboard/buyers?error=missing_buyer");
+  }
+
+  const fullName = clean(formData.get("buyer_name"));
+  const email = clean(formData.get("email"));
+
+  if (!fullName || !email) {
+    redirect(`/dashboard/buyers/${buyerId}/edit?error=missing_required`);
+  }
+
+  const cityState = clean(formData.get("city_state"));
+  const [city, state] = splitCityState(cityState);
+
+  const { error } = await admin
+    .from("buyers")
+    .update({
+      full_name: fullName,
+      email,
+      phone: clean(formData.get("phone")) || null,
+      status: normalizeSelect(formData.get("application_status"), allowedStatuses, "lead"),
+      city,
+      state,
+      notes: buildBuyerNotes(formData),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", buyerId)
+    .eq("organization_id", organizationId);
+
+  if (error) {
+    const message = encodeURIComponent(error.message.slice(0, 220));
+    redirect(`/dashboard/buyers/${buyerId}/edit?error=save_failed&message=${message}`);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/buyers");
+  redirect("/dashboard/buyers?updated=1");
+}
+
+export async function deleteBuyerRecord(formData: FormData) {
+  const admin = createSupabaseAdminClient();
+  const organizationId = await getCurrentOrganizationId();
+  const buyerId = clean(formData.get("buyer_id"));
+
+  if (!admin || !organizationId || !buyerId) {
+    redirect("/dashboard/buyers?error=delete_failed");
+  }
+
+  const { error } = await admin
+    .from("buyers")
+    .delete()
+    .eq("id", buyerId)
+    .eq("organization_id", organizationId);
+
+  if (error) {
+    const message = encodeURIComponent(error.message.slice(0, 220));
+    redirect(`/dashboard/buyers?error=delete_failed&message=${message}`);
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/buyers");
+  redirect("/dashboard/buyers?deleted=1");
+}
+
 function buildBuyerNotes(formData: FormData) {
   const parts = [
     ["Desired Breed", clean(formData.get("desired_breed"))],
