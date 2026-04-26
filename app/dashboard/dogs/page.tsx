@@ -36,7 +36,7 @@ export default async function DogsRegistryPage() {
             <div>Role</div>
             <div>Status</div>
             <div>DOB</div>
-            <div>Bloodline</div>
+            <div>Registry</div>
             <div>Program Notes</div>
           </div>
 
@@ -55,7 +55,7 @@ export default async function DogsRegistryPage() {
                 <div className="capitalize">{dog.role.replace(/_/g, ' ')}</div>
                 <div className="capitalize">{dog.status}</div>
                 <div>{dog.dateOfBirth || '—'}</div>
-                <div>{dog.bloodline || '—'}</div>
+                <div>{dog.registry || '—'}</div>
                 <div>{dog.provenStatus || dog.notes || '—'}</div>
               </div>
             ))
