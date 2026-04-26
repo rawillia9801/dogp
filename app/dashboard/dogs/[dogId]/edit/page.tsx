@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase";
 import { getCurrentOrganizationId } from "@/lib/dogs-data";
 import { updateDogRecord } from "../../actions";
+import { DogFormSubmitButton } from "../../dog-form-submit-button";
 
 export default async function EditDogPage({ params }: { params: Promise<{ dogId: string }> }) {
   const { dogId } = await params;
@@ -54,7 +55,7 @@ export default async function EditDogPage({ params }: { params: Promise<{ dogId:
             <textarea name="notes" rows={5} defaultValue={dog.notes || ""} className="mt-2 w-full rounded-2xl border border-[#ddd2c0] bg-[#fcfbf8] px-4 py-3 outline-none" />
           </div>
           <div className="md:col-span-2 flex justify-end">
-            <button className="rounded-full bg-[#2f5d3f] text-white px-8 py-4 font-semibold shadow-lg">Save Changes</button>
+            <DogFormSubmitButton idleText="Save Changes" pendingText="Saving..." />
           </div>
         </form>
       </div>
