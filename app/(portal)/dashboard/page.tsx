@@ -1,11 +1,7 @@
-"use client";
-
 import type { LucideIcon } from "lucide-react";
 import {
-  AlertTriangle,
   ArrowRight,
   Baby,
-  BadgeCheck,
   Bell,
   Bot,
   CalendarDays,
@@ -15,256 +11,90 @@ import {
   CreditCard,
   Dog,
   FileText,
-  Gauge,
   Globe2,
   HeartPulse,
-  Home,
   LayoutDashboard,
-  LogOut,
-  MessageCircle,
   PawPrint,
+  Plus,
   Route,
   Search,
   Settings,
-  ShieldCheck,
   Sparkles,
   TrendingUp,
   Users,
 } from "lucide-react";
 
-const assistantName = "BreederBuddy AI";
+const metrics = [
+  { label: "Available Puppies", value: "6", detail: "+2 this week", icon: PawPrint },
+  { label: "Active Buyers", value: "14", detail: "3 awaiting documents", icon: Users },
+  { label: "Open Balances", value: "$8,420", detail: "2 payments due soon", icon: CreditCard },
+  { label: "Docs Pending", value: "5", detail: "2 unsigned agreements", icon: ClipboardSignature },
+];
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, active: true },
   { label: "Dogs", href: "/dashboard/dogs", icon: Dog },
-  { label: "Breeding Program", href: "/dashboard/breeding-program", icon: HeartPulse },
   { label: "Litters", href: "/dashboard/litters", icon: Baby },
   { label: "Puppies", href: "/dashboard/puppies", icon: PawPrint },
   { label: "Buyers", href: "/dashboard/buyers", icon: Users },
   { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
   { label: "Documents", href: "/dashboard/documents", icon: FileText },
-  { label: "Transportation", href: "/dashboard/transportation", icon: Route },
   { label: "Website", href: "/dashboard/website", icon: Globe2 },
-  { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-const metrics = [
-  {
-    label: "Available Puppies",
-    value: "6",
-    detail: "+2 this week",
-    icon: PawPrint,
-    tone: "good",
-  },
-  {
-    label: "Active Buyers",
-    value: "14",
-    detail: "3 awaiting documents",
-    icon: Users,
-    tone: "info",
-  },
-  {
-    label: "Open Balances",
-    value: "$8,420",
-    detail: "2 payments due soon",
-    icon: CreditCard,
-    tone: "warn",
-  },
-  {
-    label: "Docs Pending",
-    value: "5",
-    detail: "2 unsigned agreements",
-    icon: ClipboardSignature,
-    tone: "danger",
-  },
-];
-
-const programModules = [
-  {
-    title: "Dogs",
-    subtitle: "Roster, dams, sires, lineage, health, genetics",
-    value: "18 records",
-    icon: Dog,
-    href: "/dashboard/dogs",
-    status: "Healthy",
-  },
-  {
-    title: "Breeding Program",
-    subtitle: "Pairing planner, breeding review, timeline",
-    value: "3 active plans",
-    icon: HeartPulse,
-    href: "/dashboard/breeding-program",
-    status: "Review",
-  },
-  {
-    title: "Litters",
-    subtitle: "Expected litters, whelping notes, puppies",
-    value: "2 current",
-    icon: Baby,
-    href: "/dashboard/litters",
-    status: "Active",
-  },
-  {
-    title: "Puppies",
-    subtitle: "Availability, buyer links, readiness gates",
-    value: "9 tracked",
-    icon: PawPrint,
-    href: "/dashboard/puppies",
-    status: "Live",
-  },
-  {
-    title: "Buyers",
-    subtitle: "Applications, assignments, activity timeline",
-    value: "14 active",
-    icon: Users,
-    href: "/dashboard/buyers",
-    status: "Needs attention",
-  },
-  {
-    title: "Payments",
-    subtitle: "Ledger, balances, due dates, plans",
-    value: "$8,420 open",
-    icon: CreditCard,
-    href: "/dashboard/payments",
-    status: "Due soon",
-  },
+const modules = [
+  { title: "Dogs", text: "Roster, health, genetics, and breeding status.", icon: Dog, href: "/dashboard/dogs", stat: "18 records" },
+  { title: "Breeding Program", text: "Pairings, heat cycles, breeding plans, and timeline.", icon: HeartPulse, href: "/dashboard/breeding-program", stat: "3 plans" },
+  { title: "Litters", text: "Whelping notes, puppy counts, and litter milestones.", icon: Baby, href: "/dashboard/litters", stat: "2 current" },
+  { title: "Buyers", text: "Applications, approvals, messages, and buyer status.", icon: Users, href: "/dashboard/buyers", stat: "14 active" },
+  { title: "Documents", text: "Contracts, guarantees, applications, and PDFs.", icon: FileText, href: "/dashboard/documents", stat: "5 pending" },
+  { title: "Transportation", text: "Pickup windows, delivery routes, and coordination.", icon: Route, href: "/dashboard/transportation", stat: "2 trips" },
 ];
 
 const tasks = [
-  {
-    title: "Send deposit agreement reminders",
-    detail: "3 buyers still need to sign before reservation is complete.",
-    area: "Documents",
-    urgency: "High",
-    icon: ClipboardSignature,
-  },
-  {
-    title: "Review payment due tomorrow",
-    detail: "Megan H. has an installment due for Willow.",
-    area: "Payments",
-    urgency: "Medium",
-    icon: CreditCard,
-  },
-  {
-    title: "Add week-six puppy updates",
-    detail: "Bella’s litter is ready for photos and weight notes.",
-    area: "Puppies",
-    urgency: "Today",
-    icon: PawPrint,
-  },
-  {
-    title: "Confirm transport window",
-    detail: "Pickup/meeting details need confirmation for Saturday.",
-    area: "Transport",
-    urgency: "Today",
-    icon: Route,
-  },
-];
-
-const events = [
-  {
-    time: "9:00 AM",
-    title: "Buyer application review",
-    description: "Two new applications need approval or follow-up.",
-  },
-  {
-    time: "12:30 PM",
-    title: "Puppy weight check",
-    description: "Week-six litter weights and photo notes.",
-  },
-  {
-    time: "4:00 PM",
-    title: "Transport confirmation",
-    description: "Confirm mileage, fee, and meeting location.",
-  },
-];
-
-const dueSoon = [
-  { label: "Health Guarantee", owner: "Ruby / Sarah M.", date: "Today", type: "Document" },
-  { label: "$425 installment", owner: "Willow / Megan H.", date: "Tomorrow", type: "Payment" },
-  { label: "Go-home checklist", owner: "Theo / Pending Buyer", date: "Friday", type: "Puppy" },
-  { label: "Delivery request", owner: "Nashville route", date: "Saturday", type: "Transport" },
+  { title: "Send deposit agreement reminders", detail: "3 buyers still need signatures before reservation is complete.", tag: "Documents" },
+  { title: "Review payment due tomorrow", detail: "Megan H. has an installment due for Willow.", tag: "Payments" },
+  { title: "Add week-six puppy updates", detail: "Bella’s litter is ready for photos and weight notes.", tag: "Puppies" },
+  { title: "Confirm transport window", detail: "Pickup details need confirmation for Saturday.", tag: "Transport" },
 ];
 
 const activity = [
-  {
-    title: "New application received",
-    detail: "Emily R. submitted a Cavalier puppy application.",
-    time: "12 min ago",
-    icon: Users,
-  },
-  {
-    title: "Payment logged",
-    detail: "$500 deposit recorded for Ruby.",
-    time: "1 hr ago",
-    icon: CreditCard,
-  },
-  {
-    title: "Document package created",
-    detail: "Deposit Agreement + Health Guarantee ready for review.",
-    time: "3 hrs ago",
-    icon: FileText,
-  },
+  { title: "New buyer application", detail: "Emily R. submitted a Cavalier puppy application.", time: "12 min ago" },
+  { title: "Payment logged", detail: "$500 deposit recorded for Ruby.", time: "1 hr ago" },
+  { title: "Document package created", detail: "Deposit Agreement + Health Guarantee ready for review.", time: "3 hrs ago" },
 ];
 
 export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-[#0F1713] text-[#ECF3EE]">
+    <main className="min-h-screen bg-[#F8F7F3] text-[#1F2933]">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
-
-        * { box-sizing: border-box; }
-
-        body {
-          font-family: "DM Sans", sans-serif;
-          background: #0F1713;
-        }
-
-        .font-display {
-          font-family: "Fraunces", serif;
-        }
-
-        .lux-card {
-          background:
-            linear-gradient(145deg, rgba(255,255,255,0.095), rgba(255,255,255,0.035)),
-            rgba(20, 31, 26, 0.94);
-          border: 1px solid rgba(226, 214, 189, 0.14);
-          box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
-        }
-
-        .soft-card {
-          background:
-            linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.025)),
-            rgba(18, 27, 23, 0.92);
-          border: 1px solid rgba(226, 214, 189, 0.12);
-        }
-
-        .gold-line {
-          background: linear-gradient(90deg, transparent, rgba(207, 177, 111, 0.55), transparent);
-        }
+        body { font-family: 'DM Sans', sans-serif; background: #F8F7F3; }
+        .font-display { font-family: 'Fraunces', serif; }
       `}</style>
 
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 shrink-0 border-r border-white/10 bg-[#101A15]/95 px-5 py-5 xl:block">
-          <a href="/" className="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/[0.04] p-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D1B46F] text-[#102016] shadow-lg shadow-[#D1B46F]/20">
+        <aside className="hidden w-72 shrink-0 border-r border-[#E5DED2] bg-white/80 px-5 py-5 shadow-sm backdrop-blur-xl xl:block">
+          <a href="/dashboard" className="flex items-center gap-3 rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2F4F3E] text-white shadow-lg shadow-[#2F4F3E]/15">
               <PawPrint className="h-6 w-6" />
             </div>
             <div>
               <p className="font-display text-xl font-black leading-tight">MyDogPortal</p>
-              <p className="text-xs font-bold text-[#AEBBB3]">Breeder Operations OS</p>
+              <p className="text-xs font-bold text-[#5B6B73]">Breeder Workspace</p>
             </div>
           </a>
 
-          <div className="mt-6 rounded-3xl border border-[#D1B46F]/20 bg-[#D1B46F]/10 p-4">
+          <div className="mt-6 rounded-3xl border border-[#D8CCB7] bg-[#F4EFE6] p-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#D1B46F] text-[#102016]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#C6A96B]/25 text-[#2F4F3E]">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-black text-white">Stage 2 Dashboard</p>
-                <p className="mt-1 text-xs leading-5 text-[#D9E3DC]/70">
-                  Compact breeder operations view. Keep docs and website-builder work separate until their stages.
+                <p className="text-sm font-black text-[#1F2933]">Workspace Ready</p>
+                <p className="mt-1 text-xs leading-5 text-[#5B6B73]">
+                  Your buyer, puppy, payment, document, and reminder hub is coming together.
                 </p>
               </div>
             </div>
@@ -277,8 +107,8 @@ export default function DashboardPage() {
                 href={item.href}
                 className={`group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-black transition ${
                   item.active
-                    ? "bg-[#D1B46F] text-[#102016] shadow-lg shadow-[#D1B46F]/15"
-                    : "text-[#B9C6BE] hover:bg-white/[0.055] hover:text-white"
+                    ? "bg-[#2F4F3E] text-white shadow-lg shadow-[#2F4F3E]/15"
+                    : "text-[#5B6B73] hover:bg-[#F4EFE6] hover:text-[#2F4F3E]"
                 }`}
               >
                 <item.icon className="h-5 w-5" />
@@ -286,69 +116,40 @@ export default function DashboardPage() {
               </a>
             ))}
           </nav>
-
-          <div className="mt-8 rounded-3xl border border-white/10 bg-white/[0.035] p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#244333] text-[#D1B46F]">
-                <Bot className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-black">{assistantName}</p>
-                <p className="text-xs text-[#AEBBB3]">Assistant shell</p>
-              </div>
-            </div>
-            <p className="mt-3 text-xs leading-5 text-[#AEBBB3]">
-              AI wiring stays scaffolded here. Deeper automation comes after the core portal is stable.
-            </p>
-          </div>
         </aside>
 
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0F1713]/88 backdrop-blur-2xl">
+          <header className="sticky top-0 z-30 border-b border-[#E5DED2] bg-[#F8F7F3]/88 backdrop-blur-2xl">
             <div className="flex items-center justify-between gap-4 px-4 py-4 md:px-8">
               <div className="flex min-w-0 items-center gap-3">
-                <a href="/" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#D1B46F] text-[#102016] xl:hidden">
+                <a href="/dashboard" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#2F4F3E] text-white xl:hidden">
                   <PawPrint className="h-5 w-5" />
                 </a>
                 <div className="min-w-0">
-                  <p className="truncate text-xs font-black uppercase tracking-[0.2em] text-[#D1B46F]">
+                  <p className="truncate text-xs font-black uppercase tracking-[0.2em] text-[#A07A35]">
                     app.mydogportal.site/dashboard
                   </p>
-                  <h1 className="font-display truncate text-2xl font-black tracking-tight md:text-3xl">
+                  <h1 className="font-display truncate text-3xl font-black tracking-tight md:text-4xl">
                     Breeder Dashboard
                   </h1>
                 </div>
               </div>
 
-              <div className="hidden min-w-[260px] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 lg:flex">
-                <Search className="h-4 w-4 text-[#AEBBB3]" />
+              <div className="hidden min-w-[280px] items-center gap-2 rounded-2xl border border-[#D8CCB7] bg-white px-3 py-2 lg:flex">
+                <Search className="h-4 w-4 text-[#7A6A55]" />
                 <input
-                  className="w-full bg-transparent text-sm text-white outline-none placeholder:text-[#AEBBB3]/70"
+                  className="w-full bg-transparent text-sm text-[#1F2933] outline-none placeholder:text-[#9A8F80]"
                   placeholder="Search buyers, puppies, documents..."
                 />
               </div>
 
               <div className="flex items-center gap-2">
-                <a
-                  href="/dashboard/notifications"
-                  className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.045] text-[#D9E3DC] transition hover:bg-white/[0.075]"
-                  aria-label="Notifications"
-                >
+                <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[#D8CCB7] bg-white text-[#2F4F3E] transition hover:bg-[#F4EFE6]" aria-label="Notifications">
                   <Bell className="h-5 w-5" />
-                  <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full border-2 border-[#0F1713] bg-[#D1B46F]" />
-                </a>
-                <a
-                  href="/settings"
-                  className="hidden rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-black text-[#D9E3DC] transition hover:bg-white/[0.075] sm:inline-flex"
-                >
+                  <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-[#C6A96B]" />
+                </button>
+                <a href="/dashboard/settings" className="hidden rounded-2xl border border-[#D8CCB7] bg-white px-4 py-3 text-sm font-black text-[#2F4F3E] transition hover:bg-[#F4EFE6] sm:inline-flex">
                   Settings
-                </a>
-                <a
-                  href="/login"
-                  className="hidden items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#102016] transition hover:bg-[#F1E9D6] sm:inline-flex"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
                 </a>
               </div>
             </div>
@@ -357,19 +158,18 @@ export default function DashboardPage() {
           <div className="flex-1 px-4 py-6 md:px-8">
             <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
               <div className="space-y-5">
-                <div className="lux-card overflow-hidden rounded-[2rem] p-6 md:p-7">
+                <div className="overflow-hidden rounded-[2rem] border border-[#E5DED2] bg-white p-6 shadow-xl shadow-[#2F4F3E]/8 md:p-7">
                   <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#D1B46F]/25 bg-[#D1B46F]/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-[#D1B46F]">
-                        <Gauge className="h-4 w-4" />
-                        Active Program Overview
+                      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#D8CCB7] bg-[#F4EFE6] px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-[#A07A35]">
+                        <LayoutDashboard className="h-4 w-4" />
+                        Today’s Program Overview
                       </div>
-                      <h2 className="font-display text-3xl font-black leading-tight md:text-5xl">
-                        Good morning, Sarah.
+                      <h2 className="font-display max-w-3xl text-4xl font-black leading-tight md:text-6xl">
+                        Welcome back to your breeder workspace.
                       </h2>
-                      <p className="mt-3 max-w-2xl text-sm leading-6 text-[#B9C6BE] md:text-base">
-                        Here is the compact operating view for today: puppies, buyers, payments, documents,
-                        upcoming work, and the breeder program areas that need attention.
+                      <p className="mt-4 max-w-2xl text-base leading-7 text-[#5B6B73]">
+                        Track puppies, buyers, payments, documents, reminders, and your public breeder experience from one calm operating center.
                       </p>
                     </div>
 
@@ -381,7 +181,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="gold-line my-7 h-px" />
+                  <div className="my-7 h-px bg-gradient-to-r from-transparent via-[#D8CCB7] to-transparent" />
 
                   <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
                     {metrics.map((metric) => (
@@ -391,178 +191,109 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid gap-5 2xl:grid-cols-[1fr_0.8fr]">
-                  <div className="lux-card rounded-[2rem] p-5">
-                    <SectionHeader
-                      eyebrow="Core Operations"
-                      title="Program modules"
-                      description="Compact entry points for Stage 2 breeder operations."
-                    />
-
+                  <Card>
+                    <SectionHeader eyebrow="Core Operations" title="Program modules" description="Jump into the pieces of the breeder workflow you manage most." />
                     <div className="mt-5 grid gap-3 md:grid-cols-2">
-                      {programModules.map((module) => (
-                        <a
-                          key={module.title}
-                          href={module.href}
-                          className="group rounded-3xl border border-white/10 bg-white/[0.035] p-4 transition hover:-translate-y-0.5 hover:border-[#D1B46F]/35 hover:bg-white/[0.06]"
-                        >
+                      {modules.map((module) => (
+                        <a key={module.title} href={module.href} className="group rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-4 transition hover:-translate-y-0.5 hover:border-[#2F4F3E]/25 hover:bg-[#F4EFE6]">
                           <div className="flex items-start gap-3">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#20382C] text-[#D1B46F]">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E9F0E7] text-[#2F4F3E]">
                               <module.icon className="h-5 w-5" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-3">
-                                <p className="font-display text-lg font-black text-white">{module.title}</p>
-                                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[#D1B46F] transition group-hover:translate-x-0.5" />
+                                <p className="font-display text-lg font-black text-[#1F2933]">{module.title}</p>
+                                <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-[#A07A35] transition group-hover:translate-x-0.5" />
                               </div>
-                              <p className="mt-1 text-xs leading-5 text-[#AEBBB3]">{module.subtitle}</p>
-                              <div className="mt-4 flex items-center justify-between gap-3">
-                                <span className="text-sm font-black text-white">{module.value}</span>
-                                <span className="rounded-full border border-[#D1B46F]/25 bg-[#D1B46F]/10 px-2.5 py-1 text-[11px] font-black text-[#D1B46F]">
-                                  {module.status}
-                                </span>
-                              </div>
+                              <p className="mt-1 text-xs leading-5 text-[#5B6B73]">{module.text}</p>
+                              <p className="mt-4 text-sm font-black text-[#2F4F3E]">{module.stat}</p>
                             </div>
                           </div>
                         </a>
                       ))}
                     </div>
-                  </div>
+                  </Card>
 
-                  <div className="lux-card rounded-[2rem] p-5">
-                    <SectionHeader
-                      eyebrow="Tasks"
-                      title="Today’s work"
-                      description="Action list without repeating giant cards."
-                    />
-
+                  <Card>
+                    <SectionHeader eyebrow="Tasks" title="Today’s work" description="A focused list of the next best actions." />
                     <div className="mt-5 space-y-3">
                       {tasks.map((task) => (
-                        <TaskRow key={task.title} {...task} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <div className="lux-card rounded-[2rem] p-5">
-                    <SectionHeader
-                      eyebrow="Timeline"
-                      title="Events"
-                      description="Program events and daily work windows."
-                    />
-
-                    <div className="mt-5 space-y-3">
-                      {events.map((event) => (
-                        <div key={event.title} className="rounded-3xl border border-white/10 bg-white/[0.035] p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="rounded-2xl bg-[#D1B46F]/12 px-3 py-2 text-xs font-black text-[#D1B46F]">
-                              {event.time}
+                        <div key={task.title} className="rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#2F4F3E] text-white">
+                              <CheckCircle2 className="h-5 w-5" />
                             </div>
                             <div>
-                              <p className="font-black text-white">{event.title}</p>
-                              <p className="mt-1 text-sm leading-5 text-[#AEBBB3]">{event.description}</p>
+                              <p className="font-black text-[#1F2933]">{task.title}</p>
+                              <p className="mt-1 text-sm leading-5 text-[#5B6B73]">{task.detail}</p>
+                              <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-[#A07A35]">{task.tag}</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="lux-card rounded-[2rem] p-5">
-                    <SectionHeader
-                      eyebrow="Activity"
-                      title="Recent movement"
-                      description="Buyer, payment, document, and puppy updates."
-                    />
-
-                    <div className="mt-5 space-y-3">
-                      {activity.map((item) => (
-                        <div key={item.title} className="flex gap-3 rounded-3xl border border-white/10 bg-white/[0.035] p-4">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#20382C] text-[#D1B46F]">
-                            <item.icon className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-3">
-                              <p className="font-black text-white">{item.title}</p>
-                              <span className="shrink-0 text-xs text-[#AEBBB3]">{item.time}</span>
-                            </div>
-                            <p className="mt-1 text-sm leading-5 text-[#AEBBB3]">{item.detail}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  </Card>
                 </div>
               </div>
 
               <aside className="space-y-5">
-                <div className="lux-card rounded-[2rem] p-5">
+                <Card>
                   <div className="flex items-center gap-3">
-                    <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D1B46F] text-[#102016]">
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2F4F3E] text-white">
                       <Bot className="h-6 w-6" />
-                      <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-[#17231D] bg-[#39C46A]" />
+                      <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#C6A96B]" />
                     </div>
                     <div>
-                      <p className="font-display text-lg font-black">{assistantName}</p>
-                      <p className="text-xs font-bold text-[#AEBBB3]">Dog Breeder Assistant AI</p>
+                      <p className="font-display text-lg font-black">BreederBuddy AI</p>
+                      <p className="text-xs font-bold text-[#5B6B73]">Dog breeder assistant</p>
                     </div>
                   </div>
 
-                  <div className="mt-5 rounded-3xl border border-white/10 bg-white/[0.045] p-4">
-                    <p className="text-sm leading-6 text-[#D9E3DC]">
-                      Two buyers have unsigned deposit agreements, one transport request needs confirmation,
-                      and one payment is due tomorrow.
+                  <div className="mt-5 rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-4">
+                    <p className="text-sm leading-6 text-[#5B6B73]">
+                      Two buyers have unsigned deposit agreements, one transport request needs confirmation, and one payment is due tomorrow.
                     </p>
                   </div>
 
-                  <div className="mt-4 grid gap-2">
-                    <button className="flex items-center justify-center gap-2 rounded-2xl bg-[#D1B46F] px-4 py-3 text-sm font-black text-[#102016] transition hover:bg-[#E5C67A]">
-                      Prepare reminders
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                    <button className="rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-black text-[#D9E3DC] transition hover:bg-white/[0.075]">
-                      Open assistant
-                    </button>
-                  </div>
-                </div>
+                  <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#2F4F3E] px-4 py-3 text-sm font-black text-white transition hover:bg-[#253F32]">
+                    Prepare reminders
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Card>
 
-                <div className="lux-card rounded-[2rem] p-5">
-                  <SectionHeader
-                    eyebrow="Due Soon"
-                    title="Needs attention"
-                    description="Payments, documents, go-home, and transport."
-                  />
-
+                <Card>
+                  <SectionHeader eyebrow="Calendar" title="Upcoming" description="Today’s important breeder work." />
                   <div className="mt-5 space-y-3">
-                    {dueSoon.map((item) => (
-                      <div key={`${item.label}-${item.owner}`} className="rounded-3xl border border-white/10 bg-white/[0.035] p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-black text-white">{item.label}</p>
-                            <p className="mt-1 text-sm text-[#AEBBB3]">{item.owner}</p>
-                          </div>
-                          <span className="rounded-full bg-[#D1B46F]/12 px-2.5 py-1 text-[11px] font-black text-[#D1B46F]">
-                            {item.date}
-                          </span>
+                    {[
+                      ["9:00 AM", "Buyer application review"],
+                      ["12:30 PM", "Puppy weight check"],
+                      ["4:00 PM", "Transport confirmation"],
+                    ].map(([time, title]) => (
+                      <div key={title} className="flex items-center gap-3 rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-4">
+                        <CalendarDays className="h-5 w-5 text-[#A07A35]" />
+                        <div>
+                          <p className="text-xs font-black uppercase tracking-[0.14em] text-[#A07A35]">{time}</p>
+                          <p className="text-sm font-black text-[#1F2933]">{title}</p>
                         </div>
-                        <p className="mt-3 text-xs font-black uppercase tracking-[0.16em] text-[#7F9188]">
-                          {item.type}
-                        </p>
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
 
-                <div className="soft-card rounded-[2rem] p-5">
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-5 w-5 text-[#D1B46F]" />
-                    <p className="font-black text-white">Boundary Check</p>
+                <Card>
+                  <SectionHeader eyebrow="Activity" title="Recent movement" description="Latest buyer, payment, and document updates." />
+                  <div className="mt-5 space-y-3">
+                    {activity.map((item) => (
+                      <div key={item.title} className="rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="font-black text-[#1F2933]">{item.title}</p>
+                          <span className="shrink-0 text-xs font-bold text-[#9A8F80]">{item.time}</span>
+                        </div>
+                        <p className="mt-1 text-sm leading-5 text-[#5B6B73]">{item.detail}</p>
+                      </div>
+                    ))}
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-[#AEBBB3]">
-                    This dashboard stays inside DogBogPortal core operations. DogBreederDocs and DogBreederWeb
-                    appear only as linked surfaces until their separate build stages.
-                  </p>
-                </div>
+                </Card>
               </aside>
             </section>
           </div>
@@ -572,119 +303,44 @@ export default function DashboardPage() {
   );
 }
 
-function MetricCard({
-  label,
-  value,
-  detail,
-  icon: Icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: LucideIcon;
-  tone: string;
-}) {
-  const toneClasses =
-    tone === "good"
-      ? "bg-emerald-400/10 text-emerald-200 border-emerald-300/15"
-      : tone === "warn"
-        ? "bg-[#D1B46F]/10 text-[#D1B46F] border-[#D1B46F]/20"
-        : tone === "danger"
-          ? "bg-rose-400/10 text-rose-200 border-rose-300/15"
-          : "bg-sky-400/10 text-sky-200 border-sky-300/15";
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-[2rem] border border-[#E5DED2] bg-white p-5 shadow-lg shadow-[#2F4F3E]/5">{children}</div>;
+}
 
+function MetricCard({ label, value, detail, icon: Icon }: { label: string; value: string; detail: string; icon: LucideIcon }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4">
+    <div className="rounded-3xl border border-[#E5DED2] bg-[#F8F7F3] p-4">
       <div className="flex items-center justify-between gap-3">
-        <div className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${toneClasses}`}>
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E9F0E7] text-[#2F4F3E]">
           <Icon className="h-5 w-5" />
         </div>
-        <TrendingUp className="h-4 w-4 text-[#D1B46F]" />
+        <TrendingUp className="h-4 w-4 text-[#A07A35]" />
       </div>
-      <p className="mt-4 text-xs font-black uppercase tracking-[0.14em] text-[#AEBBB3]">{label}</p>
-      <p className="mt-1 font-display text-3xl font-black text-white">{value}</p>
-      <p className="mt-1 text-xs font-bold text-[#AEBBB3]">{detail}</p>
+      <p className="mt-4 text-xs font-black uppercase tracking-[0.14em] text-[#7A6A55]">{label}</p>
+      <p className="mt-1 font-display text-3xl font-black text-[#1F2933]">{value}</p>
+      <p className="mt-1 text-xs font-bold text-[#5B6B73]">{detail}</p>
     </div>
   );
 }
 
-function QuickAction({
-  href,
-  label,
-  icon: Icon,
-}: {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-}) {
+function QuickAction({ href, label, icon: Icon }: { href: string; label: string; icon: LucideIcon }) {
   return (
-    <a
-      href={href}
-      className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.045] px-4 py-3 text-sm font-black text-[#ECF3EE] transition hover:border-[#D1B46F]/35 hover:bg-white/[0.075]"
-    >
+    <a href={href} className="flex items-center justify-between gap-3 rounded-2xl border border-[#D8CCB7] bg-white px-4 py-3 text-sm font-black text-[#2F4F3E] transition hover:bg-[#F4EFE6]">
       <span className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-[#D1B46F]" />
+        <Icon className="h-4 w-4 text-[#A07A35]" />
         {label}
       </span>
-      <ChevronRight className="h-4 w-4 text-[#7F9188]" />
+      <Plus className="h-4 w-4 text-[#7A6A55]" />
     </a>
   );
 }
 
-function SectionHeader({
-  eyebrow,
-  title,
-  description,
-}: {
-  eyebrow: string;
-  title: string;
-  description: string;
-}) {
+function SectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
     <div>
-      <p className="text-xs font-black uppercase tracking-[0.18em] text-[#D1B46F]">{eyebrow}</p>
-      <h2 className="font-display mt-1 text-2xl font-black text-white">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-[#AEBBB3]">{description}</p>
-    </div>
-  );
-}
-
-function TaskRow({
-  title,
-  detail,
-  area,
-  urgency,
-  icon: Icon,
-}: {
-  title: string;
-  detail: string;
-  area: string;
-  urgency: string;
-  icon: LucideIcon;
-}) {
-  const isHigh = urgency === "High";
-
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4">
-      <div className="flex items-start gap-3">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${isHigh ? "bg-rose-400/10 text-rose-200" : "bg-[#20382C] text-[#D1B46F]"}`}>
-          {isHigh ? <AlertTriangle className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <p className="font-black text-white">{title}</p>
-            <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${isHigh ? "bg-rose-400/10 text-rose-200" : "bg-[#D1B46F]/10 text-[#D1B46F]"}`}>
-              {urgency}
-            </span>
-          </div>
-          <p className="mt-1 text-sm leading-5 text-[#AEBBB3]">{detail}</p>
-          <div className="mt-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-[#7F9188]">
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#D1B46F]" />
-            {area}
-          </div>
-        </div>
-      </div>
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-[#A07A35]">{eyebrow}</p>
+      <h2 className="font-display mt-1 text-2xl font-black text-[#1F2933]">{title}</h2>
+      <p className="mt-2 text-sm leading-6 text-[#5B6B73]">{description}</p>
     </div>
   );
 }
