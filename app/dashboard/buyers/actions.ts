@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase";
 import { getCurrentOrganizationId } from "@/lib/dogs-data";
 
+const allowedStatuses = new Set(["lead", "approved", "active", "completed"]);
+
 export async function createBuyerRecord(formData: FormData) {
   const admin = createSupabaseAdminClient();
   const organizationId = await getCurrentOrganizationId();
@@ -13,21 +15,24 @@ export async function createBuyerRecord(formData: FormData) {
     redirect("/dashboard/buyers/new?error=config");
   }
 
-  const buyerName = clean(formData.get("buyer_name"));
+  const fullName = clean(formData.get("buyer_name"));
+  const email = clean(formData.get("email"));
 
-  if (!buyerName) {
-    redirect("/dashboard/buyers/new?error=missing_name");
+  if (!fullName || !email) {
+    redirect("/dashboard/buyers/new?error=missing_required");
   }
+
+  const cityState = clean(formData.get("city_state"));
+  const [city, state] = splitCityState(cityState);
 
   const payload = {
     organization_id: organizationId,
-    buyer_name: buyerName,
-    email: clean(formData.get("email")) || null,
+    full_name: fullName,
+    email,
     phone: clean(formData.get("phone")) || null,
-    application_status: clean(formData.get("application_status")) || "new",
-    assigned_litter: clean(formData.get("assigned_litter")) || null,
-    deposit_paid: toNumberOrZero(formData.get("deposit_paid")),
-    balance_due: toNumberOrZero(formData.get("balance_due")),
+    status: normalizeSelect(formData.get("application_status"), allowedStatuses, "lead"),
+    city,
+    state,
     notes: buildBuyerNotes(formData),
   };
 
@@ -45,11 +50,13 @@ export async function createBuyerRecord(formData: FormData) {
 
 function buildBuyerNotes(formData: FormData) {
   const parts = [
-    ["City/State", clean(formData.get("city_state"))],
     ["Desired Breed", clean(formData.get("desired_breed"))],
     ["Desired Sex", clean(formData.get("desired_sex"))],
     ["Desired Color", clean(formData.get("desired_color"))],
     ["Budget", clean(formData.get("budget"))],
+    ["Deposit Paid", clean(formData.get("deposit_paid"))],
+    ["Balance Due", clean(formData.get("balance_due"))],
+    ["Assigned Litter", clean(formData.get("assigned_litter"))],
   ].filter(([, value]) => value);
 
   const notes = clean(formData.get("notes"));
@@ -58,5 +65,17 @@ function buildBuyerNotes(formData: FormData) {
   return [generated, notes].filter(Boolean).join("\n\n") || null;
 }
 
-function clean(value: FormDataEntryValue | null) { return String(value || "").trim(); }
-function toNumberOrZero(value: FormDataEntryValue | null) { const n = Number(clean(value)); return Number.isFinite(n) ? n : 0; }
+function splitCityState(value: string) {
+  if (!value) return [null, null] as const;
+  const [city, ...stateParts] = value.split(",");
+  return [city?.trim() || null, stateParts.join(",").trim() || null] as const;
+}
+
+function clean(value: FormDataEntryValue | null) {
+  return String(value || "").trim();
+}
+
+function normalizeSelect(value: FormDataEntryValue | null, allowed: Set<string>, fallback: string) {
+  const normalized = clean(value).toLowerCase();
+  return allowed.has(normalized) ? normalized : fallback;
+}
