@@ -11,7 +11,6 @@ export type DogRegistryRow = {
   color: string | null;
   coat: string | null;
   registry: string | null;
-  bloodline: string | null;
   breedingEligibility: string | null;
   provenStatus: string | null;
   photoUrl: string | null;
@@ -60,7 +59,6 @@ type DogRow = {
   color: string | null;
   coat: string | null;
   registry: string | null;
-  bloodline: string | null;
   breeding_eligibility: string | null;
   proven_status: string | null;
   photo_url: string | null;
@@ -91,7 +89,7 @@ export async function getDogsRegistryData(): Promise<DogsRegistryData> {
 
   const { data } = await admin
     .from("breeding_dogs")
-    .select("id,call_name,registered_name,role,status,sex,date_of_birth,color,coat,registry,bloodline,breeding_eligibility,proven_status,photo_url,notes,created_at")
+    .select("id,call_name,registered_name,role,status,sex,date_of_birth,color,coat,registry,breeding_eligibility,proven_status,photo_url,notes,created_at")
     .eq("organization_id", organization.id)
     .order("call_name", { ascending: true })
     .returns<DogRow[]>();
@@ -162,14 +160,13 @@ function mapDog(row: DogRow): DogRegistryRow {
     id: row.id,
     callName: row.call_name ?? "Unnamed dog",
     registeredName: row.registered_name,
-    role: row.role ?? "breeding_dog",
+    role: row.role ?? "dam",
     status: row.status ?? "active",
     sex: row.sex,
     dateOfBirth: row.date_of_birth,
     color: row.color,
     coat: row.coat,
     registry: row.registry,
-    bloodline: row.bloodline,
     breedingEligibility: row.breeding_eligibility,
     provenStatus: row.proven_status,
     photoUrl: row.photo_url,
@@ -181,10 +178,10 @@ function mapDog(row: DogRow): DogRegistryRow {
 function buildStats(dogs: DogRegistryRow[]) {
   return {
     total: dogs.length,
-    activeSires: dogs.filter((dog) => dog.sex?.toLowerCase() === "male" && dog.status?.toLowerCase() === "active").length,
-    activeDams: dogs.filter((dog) => dog.sex?.toLowerCase() === "female" && dog.status?.toLowerCase() === "active").length,
+    activeSires: dogs.filter((dog) => dog.role?.toLowerCase() === "sire" && dog.status?.toLowerCase() === "active").length,
+    activeDams: dogs.filter((dog) => dog.role?.toLowerCase() === "dam" && dog.status?.toLowerCase() === "active").length,
     puppies: dogs.filter((dog) => dog.role?.toLowerCase() === "puppy").length,
-    retired: dogs.filter((dog) => dog.status?.toLowerCase() === "retired").length,
+    retired: dogs.filter((dog) => dog.status?.toLowerCase() === "retired" || dog.role?.toLowerCase() === "retired").length,
     eligible: dogs.filter((dog) => dog.breedingEligibility?.toLowerCase() === "eligible").length,
   };
 }
