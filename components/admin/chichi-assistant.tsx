@@ -6,7 +6,9 @@ import { MessageSquareHeart, Send, Sparkles, X } from "lucide-react";
 import type { SubscriptionContext } from "@/lib/auth";
 import { StatusPill } from "@/components/admin/workspace-ui";
 
-type ChiChiMessage = {
+const ASSISTANT_NAME = "Breeder Buddy AI";
+
+type AssistantMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
@@ -17,14 +19,14 @@ export function ChiChiAssistant({ subscription }: { subscription: SubscriptionCo
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChiChiMessage[]>([
+  const [messages, setMessages] = useState<AssistantMessage[]>([
     {
       id: "intro",
       role: "assistant",
       text:
         subscription.planKey === "elite"
-          ? "ChiChi can answer buyer balance questions, summarize breeder activity, open the AI document generator, and surface overdue payments from your live workspace."
-          : "ChiChi is available with Premium for breeder-specific AI workflows, account summaries, and AI-assisted document and website actions.",
+          ? `${ASSISTANT_NAME} can answer buyer balance questions, summarize breeder activity, open the AI document generator, and surface overdue payments from your live workspace.`
+          : `${ASSISTANT_NAME} is available with Premium for breeder-specific AI workflows, account summaries, and AI-assisted document and website actions.`,
     },
   ]);
 
@@ -55,7 +57,7 @@ export function ChiChiAssistant({ subscription }: { subscription: SubscriptionCo
           {
             id: `assistant-${Date.now()}`,
             role: "assistant",
-            text: payload.error ?? payload.answer ?? "ChiChi could not complete that request.",
+            text: payload.error ?? payload.answer ?? `${ASSISTANT_NAME} could not complete that request.`,
             actions: payload.actions ?? [],
           },
         ]);
@@ -65,7 +67,7 @@ export function ChiChiAssistant({ subscription }: { subscription: SubscriptionCo
           {
             id: `assistant-${Date.now()}`,
             role: "assistant",
-            text: "ChiChi could not complete that request right now.",
+            text: `${ASSISTANT_NAME} could not complete that request right now.`,
           },
         ]);
       }
@@ -78,7 +80,7 @@ export function ChiChiAssistant({ subscription }: { subscription: SubscriptionCo
         <div className="w-[380px] rounded-[24px] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(14,19,25,0.98),rgba(9,13,18,0.96)_42%,rgba(8,11,16,0.98))] shadow-[0_26px_60px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">ChiChi</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold">{ASSISTANT_NAME}</p>
               <p className="mt-1 text-sm text-stone-300">Breeder system assistant</p>
             </div>
             <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-white/[0.08] bg-white/[0.04] p-2 text-stone-300">
@@ -94,11 +96,7 @@ export function ChiChiAssistant({ subscription }: { subscription: SubscriptionCo
                   <div className="mt-3 flex flex-wrap gap-2">
                     {message.actions.map((action) =>
                       action.route ? (
-                        <Link
-                          key={`${message.id}-${action.label}`}
-                          href={action.route}
-                          className="inline-flex items-center rounded-full border border-gold/20 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold-soft"
-                        >
+                        <Link key={`${message.id}-${action.label}`} href={action.route} className="inline-flex items-center rounded-full border border-gold/20 bg-gold/10 px-3 py-1.5 text-xs font-semibold text-gold-soft">
                           {action.label}
                         </Link>
                       ) : null,
@@ -112,51 +110,26 @@ export function ChiChiAssistant({ subscription }: { subscription: SubscriptionCo
           <div className="border-t border-white/[0.07] px-4 py-4">
             <div className="mb-3 flex flex-wrap gap-2">
               {["Who has overdue payments?", "How much does this buyer owe?", "Create a deposit agreement"].map((prompt) => (
-                <button
-                  key={prompt}
-                  type="button"
-                  onClick={() => setInput(prompt)}
-                  className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-stone-300"
-                >
+                <button key={prompt} type="button" onClick={() => setInput(prompt)} className="rounded-full border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-stone-300">
                   {prompt}
                 </button>
               ))}
             </div>
             <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    send();
-                  }
-                }}
-                placeholder="Ask ChiChi about buyers, payments, or next actions"
-                className="form-input h-11 flex-1"
-              />
-              <button
-                type="button"
-                onClick={send}
-                disabled={isPending}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gold/35 bg-gold text-[#20160c] shadow-gold disabled:opacity-60"
-              >
+              <input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); send(); } }} placeholder={`Ask ${ASSISTANT_NAME} about buyers, payments, or next actions`} className="form-input h-11 flex-1" />
+              <button type="button" onClick={send} disabled={isPending} className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-gold/35 bg-gold text-[#20160c] shadow-gold disabled:opacity-60">
                 <Send className="size-4" />
               </button>
             </div>
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-3 rounded-full border border-gold/25 bg-[linear-gradient(135deg,rgba(215,173,103,0.18),rgba(215,173,103,0.08)_35%,rgba(14,20,26,0.98))] px-4 py-3 shadow-[0_20px_40px_rgba(0,0,0,0.28)]"
-        >
+        <button type="button" onClick={() => setIsOpen(true)} className="flex items-center gap-3 rounded-full border border-gold/25 bg-[linear-gradient(135deg,rgba(215,173,103,0.18),rgba(215,173,103,0.08)_35%,rgba(14,20,26,0.98))] px-4 py-3 shadow-[0_20px_40px_rgba(0,0,0,0.28)]">
           <span className="flex size-10 items-center justify-center rounded-full border border-gold/25 bg-gold/10 text-gold">
             <MessageSquareHeart className="size-4" />
           </span>
           <div className="text-left">
-            <p className="text-sm font-semibold text-stone-50">ChiChi</p>
+            <p className="text-sm font-semibold text-stone-50">{ASSISTANT_NAME}</p>
             <div className="mt-1 flex items-center gap-2">
               <StatusPill tone="green">Live</StatusPill>
               <span className="text-xs text-stone-400">Assistant</span>
