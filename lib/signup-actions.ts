@@ -1,13 +1,12 @@
 "use server";
 
+import { createHash, randomBytes } from "crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import {
-  createSupabaseAdminClient,
-  createSupabaseServerClient,
-} from "@/lib/supabase";
+import { createSupabaseAdminClient } from "@/lib/supabase";
 import type { PlanKey } from "@/lib/plans";
 import { displayPlanName } from "@/lib/upgrade";
+import { buildAccountVerificationEmail, sendEmail } from "@/lib/email";
 
 const PUBLIC_ROOT_DOMAIN = "mydogportal.site";
 const PUBLIC_WWW_DOMAIN = "www.mydogportal.site";
@@ -38,40 +37,19 @@ export async function signUpWithPlanAction(formData: FormData) {
     redirect(await buildAppAuthUrl("/sign-up", nextPath, selectedPlanKey));
   }
 
-  const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
+  if (!admin) redirect(await buildAuthRedirect("config", nextPath, selectedPlanKey));
 
-  if (!supabase) {
-    redirect(await buildAuthRedirect("/sign-up", "config", nextPath, selectedPlanKey));
-  }
-
-  const { data, error } = await supabase.auth.signUp({
+  const { data: createdUser, error: userError } = await admin.auth.admin.createUser({
     email,
     password,
-    options: {
-      emailRedirectTo: `${await getAppBaseUrl()}/auth/callback?next=/dashboard`,
-    },
+    email_confirm: false,
   });
 
-  if (error) {
-    redirect(await buildAuthRedirect("/sign-up", classifySignupError(error), nextPath, selectedPlanKey));
-  }
+  if (userError) redirect(await buildAuthRedirect(classifySignupError(userError), nextPath, selectedPlanKey));
+  if (!createdUser.user) redirect(await buildAuthRedirect("signup_no_user", nextPath, selectedPlanKey));
 
-  if (!data.user) {
-    redirect(await buildAuthRedirect("/sign-up", "signup_no_user", nextPath, selectedPlanKey));
-  }
-
-  const admin = createSupabaseAdminClient();
-
-  if (!admin) {
-    redirect(await buildAuthRedirect("/sign-up", "config", nextPath, selectedPlanKey));
-  }
-
-  const { data: plan } = await admin
-    .from("plans")
-    .select("id")
-    .eq("name", displayPlanName(selectedPlanKey))
-    .maybeSingle();
-
+  const { data: plan } = await admin.from("plans").select("id").eq("name", displayPlanName(selectedPlanKey)).maybeSingle();
   const { data: organization, error: organizationError } = await admin
     .from("organizations")
     .insert({
@@ -88,29 +66,45 @@ export async function signUpWithPlanAction(formData: FormData) {
     .single();
 
   if (organizationError || !organization) {
-    redirect(await buildAuthRedirect("/sign-up", "organization", nextPath, selectedPlanKey));
+    await admin.auth.admin.deleteUser(createdUser.user.id);
+    redirect(await buildAuthRedirect("organization", nextPath, selectedPlanKey));
   }
 
-  const { error: membershipError } = await admin.from("organization_users").insert({
+  await admin.from("organization_users").insert({
     organization_id: organization.id,
-    user_id: data.user.id,
+    user_id: createdUser.user.id,
     role: "owner",
   });
 
-  if (membershipError) {
-    console.error("organization_users insert failed during sign up", membershipError);
-  }
-
   if (plan) {
-    const { error: subscriptionError } = await admin.from("subscriptions").insert({
+    await admin.from("subscriptions").insert({
       organization_id: organization.id,
       plan_id: plan.id,
       status: "trialing",
     });
+  }
 
-    if (subscriptionError) {
-      console.error("subscription insert failed during sign up", subscriptionError);
-    }
+  const rawToken = randomBytes(32).toString("hex");
+  const tokenHash = createHash("sha256").update(rawToken).digest("hex");
+  const { error: tokenError } = await admin.from("email_verification_tokens").insert({
+    user_id: createdUser.user.id,
+    email,
+    token_hash: tokenHash,
+    expires_at: new Date(Date.now() + 86400000).toISOString(),
+  });
+
+  if (tokenError) redirect(await buildAuthRedirect("verification", nextPath, selectedPlanKey));
+
+  const verifyUrl = `${await getAppBaseUrl()}/auth/verify-account?token=${rawToken}`;
+
+  try {
+    await sendEmail({
+      to: email,
+      subject: "Confirm your MyDogPortal account",
+      html: buildAccountVerificationEmail({ businessName: organizationName, verifyUrl }),
+    });
+  } catch {
+    redirect(await buildAuthRedirect("email_send", nextPath, selectedPlanKey));
   }
 
   redirect(`/sign-in?notice=check_email&next=${encodeURIComponent(nextPath ?? "/dashboard")}`);
@@ -119,155 +113,68 @@ export async function signUpWithPlanAction(formData: FormData) {
 function classifySignupError(error: { code?: string; status?: number; message?: string | null }) {
   const code = (error.code ?? "").toLowerCase();
   const message = (error.message ?? "").toLowerCase();
-
-  if (code.includes("user_already_exists") || message.includes("already registered") || message.includes("already exists")) {
-    return "signup_exists";
-  }
-
-  if (code.includes("weak_password") || message.includes("password")) {
-    return "signup_password";
-  }
-
-  if (message.includes("invalid") && message.includes("email")) {
-    return "signup_email";
-  }
-
-  if (error.status === 429 || message.includes("rate") || message.includes("too many")) {
-    return "signup_rate_limit";
-  }
-
-  if (message.includes("disabled") || message.includes("not allowed")) {
-    return "signup_disabled";
-  }
-
+  if (code.includes("already") || message.includes("already registered") || message.includes("already exists")) return "signup_exists";
+  if (code.includes("weak_password") || message.includes("password")) return "signup_password";
+  if (message.includes("invalid") && message.includes("email")) return "signup_email";
+  if (error.status === 429 || message.includes("rate") || message.includes("too many")) return "signup_rate_limit";
   return "signup";
 }
 
 function normalizeSignupPlan(value: FormDataEntryValue | string | null | undefined): PlanKey {
-  if (typeof value !== "string") {
-    return "starter";
-  }
-
+  if (typeof value !== "string") return "starter";
   return SIGNUP_PLAN_TO_PLAN_KEY[value.trim().toLowerCase()] ?? "starter";
 }
 
 function sanitizeNextPath(value: FormDataEntryValue | null) {
-  if (typeof value !== "string") {
-    return null;
-  }
-
+  if (typeof value !== "string") return null;
   const trimmed = value.trim();
-
-  if (!trimmed) {
-    return null;
-  }
-
-  if (trimmed === `https://${APP_DOMAIN}` || trimmed === `https://${APP_DOMAIN}/`) {
-    return "/dashboard";
-  }
-
-  if (trimmed.startsWith(`https://${APP_DOMAIN}/`)) {
-    const url = new URL(trimmed);
-    return `${url.pathname}${url.search}${url.hash}`;
-  }
-
-  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) {
-    return null;
-  }
-
+  if (!trimmed || !trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
   return trimmed;
 }
 
-async function buildAuthRedirect(
-  pathname: "/sign-up",
-  error: string,
-  nextPath: string | null,
-  planKey: PlanKey,
-) {
-  const params = new URLSearchParams({
-    error,
-    plan: planKey,
-  });
-
-  if (nextPath) {
-    params.set("next", nextPath);
-  }
-
-  if (await shouldUseAbsoluteAppAuthUrls()) {
-    return `${await getAppBaseUrl()}${pathname}?${params.toString()}`;
-  }
-
+async function buildAuthRedirect(error: string, nextPath: string | null, planKey: PlanKey) {
+  const params = new URLSearchParams({ error, plan: planKey });
+  if (nextPath) params.set("next", nextPath);
+  const pathname = "/sign-up";
+  if (await shouldUseAbsoluteAppAuthUrls()) return `${await getAppBaseUrl()}${pathname}?${params.toString()}`;
   return `${pathname}?${params.toString()}`;
 }
 
 function buildOrganizationSlug(name: string) {
-  const base = name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
-
-  const fallback = base.length > 0 ? base : "breeder";
-  return `${fallback}-${Date.now().toString(36)}`;
+  const base = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
+  return `${base || "breeder"}-${Date.now().toString(36)}`;
 }
 
 async function shouldForceAuthToAppDomain() {
-  if (process.env.NODE_ENV === "development") {
-    return false;
-  }
-
+  if (process.env.NODE_ENV === "development") return false;
   const host = await getCurrentHost();
   return host === PUBLIC_ROOT_DOMAIN || host === PUBLIC_WWW_DOMAIN;
 }
 
 async function shouldUseAbsoluteAppAuthUrls() {
-  if (process.env.NODE_ENV === "development") {
-    return false;
-  }
-
+  if (process.env.NODE_ENV === "development") return false;
   const host = await getCurrentHost();
   return host === PUBLIC_ROOT_DOMAIN || host === PUBLIC_WWW_DOMAIN;
 }
 
 async function getCurrentHost() {
   const headerStore = await headers();
-  return (headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "")
-    .split(":")[0]
-    .toLowerCase();
+  return (headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "").split(":")[0].toLowerCase();
 }
 
 async function getAppBaseUrl() {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim();
-
-  if (envUrl) {
-    return envUrl.replace(/\/+$/, "");
-  }
-
-  if (process.env.NODE_ENV !== "development") {
-    return `https://${APP_DOMAIN}`;
-  }
-
+  if (envUrl) return envUrl.replace(/\/+$/, "");
+  if (process.env.NODE_ENV !== "development") return `https://${APP_DOMAIN}`;
   const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
   const protocol = headerStore.get("x-forwarded-proto") ?? "http";
-
-  if (host) {
-    return `${protocol}://${host}`;
-  }
-
-  return DEFAULT_LOCAL_APP_URL;
+  return host ? `${protocol}://${host}` : DEFAULT_LOCAL_APP_URL;
 }
 
 async function buildAppAuthUrl(pathname: "/sign-up", nextPath: string | null, planKey: PlanKey) {
-  const params = new URLSearchParams({
-    plan: planKey,
-  });
-
-  if (nextPath) {
-    params.set("next", nextPath);
-  }
-
+  const params = new URLSearchParams({ plan: planKey });
+  if (nextPath) params.set("next", nextPath);
   const query = params.toString();
   return `${await getAppBaseUrl()}${pathname}${query ? `?${query}` : ""}`;
 }
