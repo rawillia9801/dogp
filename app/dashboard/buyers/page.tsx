@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { DollarSign, FileText, Plus, ShieldCheck, Users } from "lucide-react";
+import { DollarSign, FileText, ShieldCheck, Users } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard-data";
+import { getBuyersWorkspaceData } from "@/lib/ops-data";
 
 export default async function BuyersPage() {
   const data = await getDashboardData();
+  const buyers = await getBuyersWorkspaceData();
 
   return (
     <main className="min-h-screen bg-[#f6f3ec] text-[#132238] p-6 md:p-10">
@@ -21,21 +23,11 @@ export default async function BuyersPage() {
         </section>
 
         <section className="rounded-[30px] border border-[#e2d9ca] bg-white p-6 shadow-[0_20px_60px_rgba(19,34,56,0.05)]">
-          <p className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Sales pipeline</p>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
-            <Pipeline title="New Applicants" text="Incoming puppy interest forms and submitted applications." />
-            <Pipeline title="Approved Families" text="Qualified homes moving through contracts, deposits, and selection." />
-            <Pipeline title="Placed + Paid" text="Completed balances, signed docs, and closed handoff records." />
-          </div>
-          <div className="mt-6 rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-6 text-center">
-            <Users className="mx-auto h-9 w-9 text-[#2f5d3f]" />
-            <p className="mt-4 font-black">Buyer cards and payment history load here</p>
-            <p className="mt-2 text-sm text-[#6b7785]">This workspace is now structured like a premium CRM instead of a plain list view.</p>
-          </div>
+          <p className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Live buyer families</p>
+          {buyers.length === 0 ? <div className="mt-6 rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-6 text-center"><Users className="mx-auto h-9 w-9 text-[#2f5d3f]" /><p className="mt-4 font-black">No buyers created yet</p></div> : <div className="mt-5 space-y-4">{buyers.map((buyer) => <div key={buyer.id} className="rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-5 shadow-sm"><div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4"><div><p className="text-xl font-black">{buyer.full_name}</p><p className="text-sm text-[#6b7785] mt-1">{buyer.email}</p><div className="mt-2 flex gap-2 flex-wrap"><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold capitalize">{buyer.status}</span><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold">{buyer.city || '—'} {buyer.state || ''}</span></div></div><div className="rounded-2xl bg-white border border-[#e2d9ca] px-4 py-3 text-sm">{buyer.phone || 'No phone'}</div></div><p className="mt-4 text-sm whitespace-pre-line text-[#5d6c7d]">{buyer.notes || 'No notes yet.'}</p></div>)}</div>}
         </section>
       </div>
     </main>
   );
 }
 function Stat({ label, value, icon: Icon }: { label: string; value: number | string; icon: typeof Users }) { return <div className="rounded-[24px] border border-[#e2d9ca] bg-white p-5 shadow-sm"><div className="flex items-center justify-between"><p className="text-[11px] uppercase tracking-[0.22em] text-[#8a7757] font-semibold">{label}</p><Icon className="h-5 w-5 text-[#2f5d3f]" /></div><p className="text-4xl font-black mt-3" style={{ fontFamily: 'Georgia, serif' }}>{value}</p></div>; }
-function Pipeline({ title, text }: { title: string; text: string }) { return <div className="rounded-2xl border border-[#eee5d8] bg-[#fcfbf8] p-5"><p className="font-black">{title}</p><p className="text-sm mt-2 text-[#6b7785]">{text}</p></div>; }
