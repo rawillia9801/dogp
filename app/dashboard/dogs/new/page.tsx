@@ -18,8 +18,8 @@ export default function NewDogPage() {
           <Field label="Call Name" name="call_name" required />
           <Field label="Registered Name" name="registered_name" />
           <SelectField label="Sex" name="sex" options={["female", "male", "unknown"]} />
-          <SelectField label="Program Role" name="role" options={["breeding_dog", "puppy", "retired_foundation", "keeper prospect"]} />
-          <SelectField label="Status" name="status" options={["active", "retired", "watch", "sold"]} />
+          <SelectField label="Program Role" name="role" options={["dam", "sire", "keeper", "prospect", "puppy", "retired"]} />
+          <SelectField label="Status" name="status" options={["active", "watch", "hold", "retired", "sold"]} />
           <Field label="Date of Birth" name="date_of_birth" type="date" />
           <Field label="Color" name="color" />
           <Field label="Coat" name="coat" />
