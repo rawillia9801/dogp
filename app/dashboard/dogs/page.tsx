@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getDogsRegistryData } from "@/lib/dogs-data";
+import { deleteDogRecord } from "./actions";
 
 export default async function DogsRegistryPage() {
   const data = await getDogsRegistryData();
@@ -29,7 +30,7 @@ export default async function DogsRegistryPage() {
         </section>
 
         <section className="rounded-[30px] border border-[#e2d9ca] bg-white shadow-[0_20px_60px_rgba(19,34,56,0.05)] overflow-hidden">
-          <div className="grid grid-cols-8 gap-4 px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-[#8a7757] font-semibold border-b border-[#eee5d8]">
+          <div className="grid grid-cols-9 gap-4 px-6 py-4 text-[11px] uppercase tracking-[0.22em] text-[#8a7757] font-semibold border-b border-[#eee5d8]">
             <div>Call Name</div>
             <div>Registered</div>
             <div>Sex</div>
@@ -38,6 +39,7 @@ export default async function DogsRegistryPage() {
             <div>DOB</div>
             <div>Registry</div>
             <div>Program Notes</div>
+            <div>Actions</div>
           </div>
 
           {data.dogs.length === 0 ? (
@@ -48,7 +50,7 @@ export default async function DogsRegistryPage() {
             </div>
           ) : (
             data.dogs.map((dog) => (
-              <div key={dog.id} className="grid grid-cols-8 gap-4 px-6 py-5 border-b border-[#f1ebdf] items-center text-sm">
+              <div key={dog.id} className="grid grid-cols-9 gap-4 px-6 py-5 border-b border-[#f1ebdf] items-center text-sm">
                 <div className="font-bold text-base">{dog.callName}</div>
                 <div>{dog.registeredName || '—'}</div>
                 <div className="capitalize">{dog.sex || '—'}</div>
@@ -57,6 +59,13 @@ export default async function DogsRegistryPage() {
                 <div>{dog.dateOfBirth || '—'}</div>
                 <div>{dog.registry || '—'}</div>
                 <div>{dog.provenStatus || dog.notes || '—'}</div>
+                <div className="flex flex-col gap-2">
+                  <Link href={`/dashboard/dogs/${dog.id}/edit`} className="rounded-full border border-[#d8cfbf] bg-[#fcfbf8] px-4 py-2 text-center text-xs font-semibold">Edit</Link>
+                  <form action={deleteDogRecord}>
+                    <input type="hidden" name="dog_id" value={dog.id} />
+                    <button type="submit" className="w-full rounded-full bg-[#8b2e2e] text-white px-4 py-2 text-xs font-semibold">Delete</button>
+                  </form>
+                </div>
               </div>
             ))
           )}
