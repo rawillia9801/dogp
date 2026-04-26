@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createDogRecord } from "../actions";
+import { DogFormSubmitButton } from "../dog-form-submit-button";
 
 export default function NewDogPage() {
   return (
@@ -32,7 +33,7 @@ export default function NewDogPage() {
             <textarea name="notes" rows={5} className="mt-2 w-full rounded-2xl border border-[#ddd2c0] bg-[#fcfbf8] px-4 py-3 outline-none" />
           </div>
           <div className="md:col-span-2 flex justify-end">
-            <button className="rounded-full bg-[#2f5d3f] text-white px-8 py-4 font-semibold shadow-lg">Save Dog Record</button>
+            <DogFormSubmitButton idleText="Save Dog Record" pendingText="Saving Dog..." />
           </div>
         </form>
       </div>
