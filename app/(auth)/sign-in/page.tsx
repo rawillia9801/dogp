@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Sign In",
 };
 
-const APP_DASHBOARD_URL = "https://app.mydogportal.site/dashboard";
+const APP_ADMIN_URL = "https://app.mydogportal.site/admin";
 const APP_DOMAIN = "app.mydogportal.site";
 const PUBLIC_ROOT_DOMAIN = "mydogportal.site";
 const PUBLIC_WWW_DOMAIN = "www.mydogportal.site";
@@ -26,7 +26,7 @@ const errorMessages: Record<string, string> = {
 const noticeMessages: Record<string, string> = {
   check_email: "Account created. Check your email and click the confirmation link to finish setup.",
   confirmed: "Email confirmed. You can sign in now.",
-  verified: "Email verified. Sign in to open your breeder dashboard.",
+  verified: "Email verified. Sign in to open your breeder workspace.",
 };
 
 export default async function SignInPage({
@@ -38,15 +38,12 @@ export default async function SignInPage({
 
   await redirectPublicAuthPageToAppDomain("/sign-in", {
     error: params.error,
-    next: params.next,
+    next: normalizeNext(params.next),
     notice: params.notice,
     email: params.email,
   });
 
-  const nextPath =
-    typeof params.next === "string" && params.next.trim().length > 0
-      ? params.next
-      : APP_DASHBOARD_URL;
+  const nextPath = normalizeNext(params.next) ?? APP_ADMIN_URL;
 
   const errorMessage = params.error ? errorMessages[params.error] : null;
   const noticeMessage = params.notice ? noticeMessages[params.notice] : null;
@@ -99,6 +96,18 @@ export default async function SignInPage({
       </p>
     </AuthShell>
   );
+}
+
+function normalizeNext(value: string | undefined) {
+  if (!value || value === "/dashboard") {
+    return "/admin";
+  }
+
+  if (value === "https://app.mydogportal.site/dashboard") {
+    return APP_ADMIN_URL;
+  }
+
+  return value;
 }
 
 async function redirectPublicAuthPageToAppDomain(
