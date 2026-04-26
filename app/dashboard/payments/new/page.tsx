@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { createPaymentRecord } from "../actions";
 
 export default function NewPaymentPage() {
   return (
@@ -13,20 +14,20 @@ export default function NewPaymentPage() {
           <Link href="/dashboard/payments" className="rounded-full border border-[#d8cfbf] bg-white px-6 py-3 font-semibold shadow-sm">Back to Payments</Link>
         </div>
 
-        <form className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-[32px] border border-[#e2d9ca] bg-white p-8 shadow-[0_20px_60px_rgba(19,34,56,0.06)]">
-          <Field label="Buyer Name" />
-          <Field label="Payment Amount" />
-          <Field label="Payment Date" type="date" />
-          <Field label="Payment Type" />
-          <Field label="Invoice / Contract Ref" />
-          <Field label="Remaining Balance" />
-          <Field label="Method" />
-          <Field label="Assigned Puppy / Litter" />
-          <div className="md:col-span-2"><label className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Finance Notes</label><textarea rows={5} className="mt-2 w-full rounded-2xl border border-[#ddd2c0] bg-[#fcfbf8] px-4 py-3 outline-none" /></div>
+        <form action={createPaymentRecord} className="grid grid-cols-1 md:grid-cols-2 gap-5 rounded-[32px] border border-[#e2d9ca] bg-white p-8 shadow-[0_20px_60px_rgba(19,34,56,0.06)]">
+          <Field label="Buyer Name" name="buyer_name" />
+          <Field label="Payment Amount" name="payment_amount" />
+          <Field label="Payment Date" name="payment_date" type="date" />
+          <Field label="Payment Type" name="payment_type" />
+          <Field label="Invoice / Contract Ref" name="invoice_ref" />
+          <Field label="Remaining Balance" name="remaining_balance" />
+          <Field label="Method" name="method" />
+          <Field label="Assigned Puppy / Litter" name="assigned_unit" />
+          <div className="md:col-span-2"><label className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Finance Notes</label><textarea name="notes" rows={5} className="mt-2 w-full rounded-2xl border border-[#ddd2c0] bg-[#fcfbf8] px-4 py-3 outline-none" /></div>
           <div className="md:col-span-2 flex justify-end"><button className="rounded-full bg-[#2f5d3f] text-white px-7 py-3 font-semibold shadow-lg">Save Payment</button></div>
         </form>
       </div>
     </main>
   );
 }
-function Field({ label, type = 'text' }: { label: string; type?: string }) { return <div><label className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">{label}</label><input type={type} className="mt-2 w-full rounded-2xl border border-[#ddd2c0] bg-[#fcfbf8] px-4 py-3 outline-none" /></div>; }
+function Field({ label, name, type = 'text' }: { label: string; name: string; type?: string }) { return <div><label className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">{label}</label><input name={name} type={type} className="mt-2 w-full rounded-2xl border border-[#ddd2c0] bg-[#fcfbf8] px-4 py-3 outline-none" /></div>; }
