@@ -15,6 +15,7 @@ export type DashboardData = {
     documentsPending: number;
     transportation: number;
     tasksOpen: number;
+    alertsOpen: number;
     eventsUpcoming: number;
   };
   money: {
@@ -34,6 +35,11 @@ export type DashboardData = {
     detail: string;
     tag: string;
     priority: string;
+  }>;
+  alerts: Array<{
+    title: string;
+    detail: string;
+    severity: string;
   }>;
   events: Array<{
     title: string;
@@ -57,6 +63,7 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
     documentsPending: 0,
     transportation: 0,
     tasksOpen: 0,
+    alertsOpen: 0,
     eventsUpcoming: 0,
   },
   money: {
@@ -72,8 +79,11 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
     hasPayment: false,
   },
   tasks: [],
+  alerts: [],
   events: [],
 };
+
+type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
 export async function getDashboardData(): Promise<DashboardData> {
   const server = await createSupabaseServerClient();
@@ -101,6 +111,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   const [
+    branding,
     dogs,
     breedings,
     pregnancies,
@@ -109,17 +120,27 @@ export async function getDashboardData(): Promise<DashboardData> {
     availablePuppies,
     reservedPuppies,
     buyers,
+    buyerApplications,
     applications,
-    documentsPending,
+    buyerDocumentsPending,
     contractsPending,
+    documentsPending,
     transportation,
-    tasksOpen,
-    eventsUpcoming,
+    transportationRequests,
+    breederTasksOpen,
+    breedingTasksOpen,
+    alertsOpen,
+    breederEventsUpcoming,
+    breedingEventsUpcoming,
     paymentAccounts,
     paymentPlansDueSoon,
-    taskRows,
-    eventRows,
+    breederTaskRows,
+    breedingTaskRows,
+    alertRows,
+    breederEventRows,
+    breedingEventRows,
   ] = await Promise.all([
+    admin.from("breeder_branding").select("business_name").eq("organization_id", organizationId).maybeSingle(),
     countRows(admin, "breeding_dogs", organizationId),
     countRows(admin, "breeding_pairings", organizationId),
     countRows(admin, "breeding_pregnancies", organizationId, "status", ["suspected", "confirmed", "active"]),
@@ -129,11 +150,17 @@ export async function getDashboardData(): Promise<DashboardData> {
     countRows(admin, "puppies", organizationId, "status", ["reserved", "pending", "sold"]),
     countRows(admin, "buyers", organizationId),
     countRows(admin, "buyer_applications", organizationId, "status", ["submitted", "new", "pending"]),
+    countRows(admin, "applications", organizationId, "status", ["submitted", "new", "pending"]),
     countRows(admin, "buyer_documents", organizationId, "status", ["draft", "uploaded", "pending", "sent"]),
     countRows(admin, "contracts", organizationId, "status", ["draft", "sent", "pending"]),
+    countRows(admin, "documents", organizationId, "status", ["draft", "sent", "pending"]),
     countRows(admin, "transportation", organizationId),
+    countRows(admin, "buyer_transportation_requests", organizationId, "status", ["requested", "scheduled", "pending"]),
     countRows(admin, "breeder_tasks", organizationId, "status", ["open", "pending"]),
+    countRows(admin, "breeding_tasks", organizationId, "status", ["open", "pending"]),
+    countRows(admin, "breeding_alerts", organizationId, "status", ["open"]),
     countDateRows(admin, "breeder_events", organizationId, "event_date", today, sevenDaysFromNow),
+    countDateRows(admin, "breeding_calendar_events", organizationId, "event_date", today, sevenDaysFromNow),
     admin.from("buyer_payment_accounts").select("balance").eq("organization_id", organizationId),
     admin
       .from("buyer_payment_plans")
@@ -148,7 +175,28 @@ export async function getDashboardData(): Promise<DashboardData> {
       .order("due_date", { ascending: true, nullsFirst: false })
       .limit(4),
     admin
+      .from("breeding_tasks")
+      .select("title,priority,status,due_date,task_type,description")
+      .eq("organization_id", organizationId)
+      .in("status", ["open", "pending"])
+      .order("due_date", { ascending: true, nullsFirst: false })
+      .limit(4),
+    admin
+      .from("breeding_alerts")
+      .select("title,detail,severity")
+      .eq("organization_id", organizationId)
+      .eq("status", "open")
+      .order("created_at", { ascending: false })
+      .limit(3),
+    admin
       .from("breeder_events")
+      .select("title,event_type,event_date,status")
+      .eq("organization_id", organizationId)
+      .gte("event_date", isoDate(today))
+      .order("event_date", { ascending: true })
+      .limit(3),
+    admin
+      .from("breeding_calendar_events")
       .select("title,event_type,event_date,status")
       .eq("organization_id", organizationId)
       .gte("event_date", isoDate(today))
@@ -159,10 +207,15 @@ export async function getDashboardData(): Promise<DashboardData> {
   const openBalances = sumBalances(paymentAccounts.data);
   const dueSoon = countDueSoon(paymentPlansDueSoon.data, today, sevenDaysFromNow);
   const overdue = countOverdue(paymentPlansDueSoon.data, today);
-  const pendingDocuments = documentsPending + contractsPending;
+  const applicationCount = buyerApplications + applications;
+  const pendingDocuments = buyerDocumentsPending + contractsPending + documentsPending;
+  const transportCount = transportation + transportationRequests;
+  const tasksOpen = breederTasksOpen + breedingTasksOpen;
+  const eventsUpcoming = breederEventsUpcoming + breedingEventsUpcoming;
+  const businessName = branding.data?.business_name?.trim() || organization.name;
 
   return {
-    organizationName: organization.name,
+    organizationName: businessName,
     counts: {
       dogs,
       breedings,
@@ -172,10 +225,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       availablePuppies,
       reservedPuppies,
       buyers,
-      applications,
+      applications: applicationCount,
       documentsPending: pendingDocuments,
-      transportation,
+      transportation: transportCount,
       tasksOpen,
+      alertsOpen,
       eventsUpcoming,
     },
     money: {
@@ -185,21 +239,18 @@ export async function getDashboardData(): Promise<DashboardData> {
     },
     activation: {
       hasDog: dogs > 0,
-      hasBreeding: breedings > 0,
+      hasBreeding: breedings > 0 || pregnancies > 0,
       hasPuppy: puppies > 0,
       hasBuyer: buyers > 0,
-      hasPayment: openBalances > 0,
+      hasPayment: openBalances > 0 || dueSoon > 0 || overdue > 0,
     },
-    tasks: mapTasks(taskRows.data),
-    events: mapEvents(eventRows.data),
+    tasks: [...mapBreederTasks(breederTaskRows.data), ...mapBreedingTasks(breedingTaskRows.data)].slice(0, 4),
+    alerts: mapAlerts(alertRows.data),
+    events: [...mapEvents(breederEventRows.data), ...mapEvents(breedingEventRows.data)].slice(0, 3),
   };
 }
 
-async function findOrganizationForUser(
-  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
-  userId: string,
-  email: string | null,
-) {
+async function findOrganizationForUser(admin: AdminClient, userId: string, email: string | null) {
   const { data: membership } = await admin
     .from("organization_users")
     .select("organization_id, organizations(id,name)")
@@ -232,7 +283,7 @@ async function findOrganizationForUser(
 }
 
 async function countRows(
-  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  admin: AdminClient,
   table: string,
   organizationId: string,
   filterColumn?: string,
@@ -244,25 +295,31 @@ async function countRows(
     query = query.in(filterColumn, filterValues);
   }
 
-  const { count } = await query;
+  const { count, error } = await query;
+  if (error) {
+    console.error(`Dashboard count failed for ${table}`, error.message);
+  }
   return count ?? 0;
 }
 
 async function countDateRows(
-  admin: NonNullable<ReturnType<typeof createSupabaseAdminClient>>,
+  admin: AdminClient,
   table: string,
   organizationId: string,
   dateColumn: string,
   start: Date,
   end: Date,
 ) {
-  const { count } = await admin
+  const { count, error } = await admin
     .from(table)
     .select("id", { count: "exact", head: true })
     .eq("organization_id", organizationId)
     .gte(dateColumn, isoDate(start))
     .lte(dateColumn, isoDate(end));
 
+  if (error) {
+    console.error(`Dashboard date count failed for ${table}`, error.message);
+  }
   return count ?? 0;
 }
 
@@ -285,12 +342,29 @@ function countOverdue(rows: Array<{ next_due_date: string | null }> | null, toda
   }).length;
 }
 
-function mapTasks(rows: Array<{ title: string | null; priority: string | null; related_type: string | null; notes: string | null }> | null) {
+function mapBreederTasks(rows: Array<{ title: string | null; priority: string | null; related_type: string | null; notes: string | null }> | null) {
   return (rows ?? []).map((row) => ({
     title: row.title ?? "Open task",
     detail: row.notes ?? "Review this task and mark it complete when finished.",
     tag: row.related_type ?? "Task",
     priority: row.priority ?? "normal",
+  }));
+}
+
+function mapBreedingTasks(rows: Array<{ title: string | null; priority: string | null; task_type: string | null; description: string | null }> | null) {
+  return (rows ?? []).map((row) => ({
+    title: row.title ?? "Breeding task",
+    detail: row.description ?? "Review this breeding program task.",
+    tag: row.task_type ?? "Breeding",
+    priority: row.priority ?? "normal",
+  }));
+}
+
+function mapAlerts(rows: Array<{ title: string | null; detail: string | null; severity: string | null }> | null) {
+  return (rows ?? []).map((row) => ({
+    title: row.title ?? "Open alert",
+    detail: row.detail ?? "Review this alert.",
+    severity: row.severity ?? "info",
   }));
 }
 
