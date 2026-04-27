@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AlertTriangle, CreditCard, DollarSign, Receipt } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard-data";
 import { getPaymentsWorkspaceData } from "@/lib/ops-data";
+import { deletePaymentRecord } from "./actions";
+import { DeleteRecordButton } from "@/app/dashboard/record-buttons";
 
 export default async function PaymentsPage() {
   const data = await getDashboardData();
@@ -24,7 +26,7 @@ export default async function PaymentsPage() {
 
         <section className="rounded-[30px] border border-[#e2d9ca] bg-white p-6 shadow-[0_20px_60px_rgba(19,34,56,0.05)]">
           <p className="text-xs uppercase tracking-[0.22em] text-[#8a7757] font-semibold">Recent breeder payments</p>
-          {payments.length === 0 ? <div className="mt-6 rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-6 text-center"><p className="font-black">No payments logged yet</p></div> : <div className="mt-5 space-y-4">{payments.map((payment: any) => <div key={payment.id} className="rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4"><div><p className="text-xl font-black">{payment.buyers.full_name}</p><p className="text-sm text-[#6b7785] mt-1">{payment.payment_date}</p></div><div className="flex gap-3 flex-wrap"><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold uppercase">{payment.type}</span><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold uppercase">{payment.method}</span><span className="rounded-full bg-[#eef5eb] px-4 py-2 text-sm font-black text-[#2f5d3f]">${payment.amount}</span></div></div>)}</div>}
+          {payments.length === 0 ? <div className="mt-6 rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-6 text-center"><p className="font-black">No payments logged yet</p></div> : <div className="mt-5 space-y-4">{payments.map((payment: any) => <div key={payment.id} className="rounded-[24px] border border-[#eee5d8] bg-[#fcfbf8] p-5 shadow-sm"><div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"><div><p className="text-xl font-black">{payment.buyers.full_name}</p><p className="text-sm text-[#6b7785] mt-1">{payment.payment_date}</p></div><div className="flex gap-3 flex-wrap"><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold uppercase">{payment.type}</span><span className="rounded-full bg-white border border-[#e2d9ca] px-3 py-1 text-[11px] font-bold uppercase">{payment.method}</span><span className="rounded-full bg-[#eef5eb] px-4 py-2 text-sm font-black text-[#2f5d3f]">${payment.amount}</span></div></div><div className="mt-4 flex gap-2 max-w-[220px]"><Link href={`/dashboard/payments/${payment.id}/edit`} className="flex-1 rounded-full border border-[#d8cfbf] bg-white px-4 py-2 text-center text-xs font-semibold">Edit</Link><form action={deletePaymentRecord} className="flex-1"><input type="hidden" name="payment_id" value={payment.id} /><DeleteRecordButton label="Delete" confirmMessage="Delete this payment record?" /></form></div></div>)}</div>}
         </section>
       </div>
     </main>
