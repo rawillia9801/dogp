@@ -19,10 +19,10 @@ export default function FeaturesPage() {
         <div className="max-w-3xl">
           <p className="text-sm font-black uppercase tracking-[0.2em] text-[#C6A96B]">Features</p>
           <h1 className="mt-3 text-5xl font-black tracking-tight md:text-6xl">
-            Everything you need to look organized, professional, and trustworthy.
+            Breeder records, buyer operations, and premium growth tools in one system.
           </h1>
           <p className="mt-6 text-lg leading-8 text-[#5B6B73]">
-            This is not a generic CRM with dog words added later. It is structured around the work you do every day: puppies, buyers, deposits, contracts, updates, and go-home preparation.
+            MyDogPortal is structured around the breeder lifecycle represented in the app: dogs, breeding work, litters, puppies, buyers, applications, payments, documents, transportation, automation, settings, billing, portal records, website builder, and assistant workspaces.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a
