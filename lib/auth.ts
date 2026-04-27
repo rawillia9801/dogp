@@ -23,11 +23,7 @@ export type OrganizationContext = {
   role: "owner" | "staff";
 };
 
-export type SubscriptionContext = {
-  status: string;
-  planKey: PlanKey;
-  planName: string;
-};
+export type SubscriptionContext = { status: string; planKey: PlanKey; planName: string };
 
 const DEVELOPMENT_USER_ID = "00000000-0000-4000-8000-000000000001";
 const DEVELOPMENT_ORGANIZATION_ID = "00000000-0000-4000-8000-000000000002";
@@ -78,24 +74,41 @@ export async function getOptionalAdminOrganization() { const organization = awai
 
 async function getAuthenticatedOrganization(): Promise<OrganizationContext | null> {
   if (!isSupabaseConfigured()) return null;
+
   const supabase = await createSupabaseServerClient();
   const { data: userData } = await supabase!.auth.getUser();
   if (!userData.user) return null;
-  const { data: membership, error: membershipError } = await supabase!
+
+  const admin = createSupabaseAdminClient();
+  const membershipClient = admin ?? supabase!;
+  const { data: membership, error: membershipError } = await membershipClient
     .from("organization_users")
     .select("role, is_owner, is_active, organizations(id, name, legal_name, email, phone, website, timezone)")
     .eq("auth_user_id", userData.user.id)
     .eq("is_active", true)
     .limit(1)
     .maybeSingle();
+
   if (!membershipError && membership) {
     const organization = Array.isArray(membership.organizations) ? membership.organizations[0] : membership.organizations;
     if (organization) {
-      return { userId: userData.user.id, id: organization.id, name: organization.name, legalName: organization.legal_name, email: organization.email, phone: organization.phone, website: organization.website, timezone: organization.timezone, role: (membership.role || (membership.is_owner ? "owner" : "staff")) as "owner" | "staff" };
+      return {
+        userId: userData.user.id,
+        id: organization.id,
+        name: organization.name,
+        legalName: organization.legal_name,
+        email: organization.email,
+        phone: organization.phone,
+        website: organization.website,
+        timezone: organization.timezone,
+        role: (membership.role || (membership.is_owner ? "owner" : "staff")) as "owner" | "staff",
+      };
     }
   }
+
   if (!userData.user.email) return null;
-  const { data: fallbackOrganization } = await supabase!.from("organizations").select("id, name, legal_name, email, phone, website, timezone").eq("email", userData.user.email).order("created_at", { ascending: true }).limit(1).maybeSingle();
+  const fallbackClient = admin ?? supabase!;
+  const { data: fallbackOrganization } = await fallbackClient.from("organizations").select("id, name, legal_name, email, phone, website, timezone").eq("email", userData.user.email).order("created_at", { ascending: true }).limit(1).maybeSingle();
   if (!fallbackOrganization) return null;
   return { userId: userData.user.id, id: fallbackOrganization.id, name: fallbackOrganization.name, legalName: fallbackOrganization.legal_name, email: fallbackOrganization.email, phone: fallbackOrganization.phone, website: fallbackOrganization.website, timezone: fallbackOrganization.timezone, role: "owner" };
 }
@@ -116,9 +129,10 @@ export async function getSubscriptionForOrganization(organizationId: string): Pr
   const fallback = { status: "trialing", planKey: "starter" as const, planName: "Starter" };
   if (!isSupabaseConfigured()) return fallback;
   const supabase = await createSupabaseServerClient();
-  const { data } = await supabase!.from("subscriptions").select("status, plans(name)").eq("organization_id", organizationId).maybeSingle();
+  const client = createSupabaseAdminClient() ?? supabase!;
+  const { data } = await client.from("subscriptions").select("status, plans(name)").eq("organization_id", organizationId).maybeSingle();
   if (!data) {
-    const { data: organization } = await supabase!.from("organizations").select("subscription_status").eq("id", organizationId).maybeSingle();
+    const { data: organization } = await client.from("organizations").select("subscription_status").eq("id", organizationId).maybeSingle();
     return { status: organization?.subscription_status ?? fallback.status, planKey: fallback.planKey, planName: fallback.planName };
   }
   const plan = Array.isArray(data?.plans) ? data?.plans[0] : data?.plans;
