@@ -25,67 +25,67 @@ export const modules: Array<{
 }> = [
   {
     icon: LayoutDashboard,
-    title: "Dog Breeder OS",
-    text: "Manage your dogs, litters, buyers, payments, documents, and daily work from one calm dashboard.",
+    title: "Breeder Operating System",
+    text: "Manage your dogs, litters, puppies, buyers, payments, documents, and daily work from one breeder-native workspace.",
     accent: "#2F4F3E",
     badge: "Core",
   },
   {
     icon: FileText,
-    title: "Smart Documents",
-    text: "Create your contracts, health guarantees, applications, deposits, and payment agreements.",
+    title: "Document Management",
+    text: "Track contracts, health guarantees, applications, deposits, and buyer paperwork inside the buyer record.",
     accent: "#5A7A6A",
-    badge: "Legal",
+    badge: "Records",
   },
   {
     icon: Globe2,
-    title: "Breeder Websites",
-    text: "Launch your public website with puppies, applications, policies, and buyer trust sections.",
+    title: "Breeder Website Builder",
+    text: "Create breeder website content and prepare public puppy, application, policy, and trust sections from the same system.",
     accent: "#7A9A8A",
     badge: "Web",
   },
   {
     icon: Bot,
     title: "Chi Chi Assistant",
-    text: "Get help with documents, payments, puppy updates, and buyer communication from one assistant.",
+    text: "Use built-in assistance for breeder documents, payment review, puppy updates, and buyer communication workflows.",
     accent: "#C6A96B",
     badge: "AI",
   },
 ];
 
 export const featureChecklist = [
-  "Puppy and litter tracking",
+  "Dog, puppy, and litter tracking",
   "Buyer applications",
   "Payment plans and balances",
-  "Document templates",
+  "Document records",
   "Buyer portal",
-  "Website builder",
+  "Website builder workspace",
   "Transport coordination",
-  "AI-powered Chi Chi helper",
+  "Chi Chi assistance",
 ];
 
 export const pricingTiers = [
   {
-    name: "Documents",
+    name: "Starter",
     price: "$29",
-    description: "For when you only need contracts, forms, and polished buyer paperwork.",
-    features: ["Smart document templates", "PDF export", "Buyer application forms", "Deposit agreements"],
-    href: "/sign-up?plan=documents",
+    description: "For breeders who need the core operating system: dashboard, dogs, breeding program, litters, puppies, settings, and billing.",
+    features: ["Dashboard", "Dog records", "Breeding program", "Litters and puppies"],
+    href: "/sign-up?plan=starter",
   },
   {
-    name: "Breeder OS",
+    name: "Professional",
     price: "$59",
-    description: "For when you want one place to organize puppies, buyers, payments, and records.",
-    features: ["Dog and litter records", "Buyer management", "Payment tracking", "Basic portal access"],
+    description: "For active breeders who need buyer operations, applications, payments, documents, transportation, and automation.",
+    features: ["Everything in Starter", "Buyers and applications", "Payments and documents", "Transportation and automation"],
     highlighted: true,
-    href: "/sign-up?plan=breeder-os",
+    href: "/sign-up?plan=pro",
   },
   {
-    name: "Full System",
+    name: "Premium",
     price: "$99",
-    description: "For when you want the complete portal, documents, website, payments, and Chi Chi.",
-    features: ["Everything in Breeder OS", "Smart Documents", "Breeder website", "Chi Chi Assistant"],
-    href: "/sign-up?plan=full-system",
+    description: "For breeders who want advanced AI-assisted workflows, document generation, website builder access, and higher capacity.",
+    features: ["Everything in Professional", "AI document workspace", "Website builder", "Advanced Chi Chi tools"],
+    href: "/sign-up?plan=elite",
   },
 ];
 
@@ -95,10 +95,10 @@ export function FeatureModulesSection() {
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-sm font-black uppercase tracking-[0.2em] text-[#C6A96B]">One system, flexible entry points</p>
         <h2 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
-          Start with what you need. Grow when you are ready.
+          Start with the core operating system. Upgrade as your program grows.
         </h2>
         <p className="mt-5 text-lg leading-8 text-[#5B6B73]">
-          Start with documents, run the full operating system, or launch your website. Everything stays connected inside one system.
+          MyDogPortal is organized around the real breeder lifecycle: dogs, breedings, litters, puppies, buyers, payments, documents, transportation, and buyer portal work.
         </p>
       </div>
 
@@ -127,7 +127,7 @@ export function FeaturesChecklistSection() {
             Everything you need to look organized, professional, and trustworthy.
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#5B6B73]">
-            This is not a generic CRM with dog words added later. It is structured around the work you do every day: puppies, buyers, deposits, contracts, updates, and go-home preparation.
+            This is not a generic CRM with dog words added later. It is structured around the work breeders manage every day: puppies, buyers, deposits, contracts, updates, and go-home preparation.
           </p>
         </div>
 
@@ -163,7 +163,7 @@ export function ChiChiSection() {
             </div>
 
             <ChatBubble sender="Chi Chi">
-              Hi! I can help prepare your buyer documents, explain payment balances, organize puppy updates, or guide a buyer through their portal.
+              Hi! I can help review buyer documents, explain payment balances, organize puppy updates, or guide a buyer through their portal.
             </ChatBubble>
 
             <ChatBubble sender="You">
@@ -171,11 +171,11 @@ export function ChiChiSection() {
             </ChatBubble>
 
             <ChatBubble sender="Chi Chi">
-              I found 3 unsigned deposit agreements. I can prepare reminders and attach the correct document package for each buyer.
+              I found 3 unsigned deposit agreements in the document workspace. I can help you prepare the right follow-up for each buyer.
             </ChatBubble>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              {["Prepare Docs", "Check Payments", "Send Update"].map((action) => (
+              {["Review Docs", "Check Payments", "Prepare Update"].map((action) => (
                 <button key={action} className="rounded-2xl border border-[#D8CCB7] bg-white px-4 py-3 text-sm font-bold text-[#2F4F3E]">
                   {action}
                 </button>
@@ -185,12 +185,12 @@ export function ChiChiSection() {
         </div>
 
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.2em] text-[#C6A96B]">Chi Chi included</p>
+          <p className="text-sm font-black uppercase tracking-[0.2em] text-[#C6A96B]">Chi Chi assistant</p>
           <h2 className="mt-3 text-4xl font-black tracking-tight md:text-5xl">
-            A friendly assistant built into your workflow and your buyer experience.
+            A workflow assistant for breeder operations and buyer experience.
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#5B6B73]">
-            Chi Chi helps make the system feel alive - not just like a dashboard. It can guide you through daily work and help buyers understand their puppy journey.
+            Chi Chi supports the work already inside MyDogPortal: buyer records, documents, payments, puppy updates, and portal guidance.
           </p>
 
           <div className="mt-7 grid gap-4">
@@ -214,7 +214,7 @@ export function DemoSection() {
             See how your public website can look.
           </h2>
           <p className="mt-5 text-lg leading-8 text-[#5B6B73]">
-            Launch on a MyDogPortal subdomain like breeder.dogbreederweb.site or connect your own custom domain when you are ready.
+            Use the website builder workspace to prepare breeder site copy, puppy sections, policy content, and buyer application entry points.
           </p>
         </div>
 
@@ -223,7 +223,7 @@ export function DemoSection() {
             <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div>
                 <p className="text-2xl font-black">Sunny Ridge Cavaliers</p>
-                <p className="text-sm text-[#5B6B73]">A live website preview powered by MyDogPortal</p>
+                <p className="text-sm text-[#5B6B73]">A breeder website preview powered by MyDogPortal</p>
               </div>
               <button className="rounded-full bg-[#2F4F3E] px-5 py-3 text-sm font-bold text-white">
                 Apply for a Puppy
@@ -395,7 +395,7 @@ export function DemoCard() {
               </div>
             </div>
             <div className="rounded-2xl bg-[#F4EFE6] p-4 text-sm leading-6 text-[#44535A]">
-              &ldquo;Two buyers have unsigned deposit agreements. Would you like me to prepare reminders?&rdquo;
+              &ldquo;Two buyers have unsigned deposit agreements. Would you like help preparing reminders?&rdquo;
             </div>
           </div>
 
