@@ -1,97 +1,121 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Baby, Bell, Bot, CreditCard, Dog, FileCheck2, FileText, Gauge, Globe2, HeartPulse, LogOut, PawPrint, Route, Search, Send, Settings, ShieldCheck, Users } from "lucide-react";
+import { Baby, Bell, Bot, CircleDot, CreditCard, Dog, FileCheck2, FileText, Gauge, Globe2, HeartPulse, LogOut, PawPrint, Route, Search, Send, Settings, ShieldCheck, Users } from "lucide-react";
 import { logoutAction, type OrganizationContext, type SubscriptionContext } from "@/lib/auth";
 
 const navItems = [
-  ["Command Center", "/dashboard", Gauge],
-  ["Dogs", "/dashboard/dogs", Dog],
-  ["Breeding Program", "/dashboard/breeding-program", HeartPulse],
-  ["Litters", "/dashboard/litters", Baby],
-  ["Puppies", "/dashboard/puppies", PawPrint],
-  ["Applications", "/dashboard/applications", FileCheck2],
-  ["Buyers", "/dashboard/buyers", Users],
-  ["Payments", "/dashboard/payments", CreditCard],
-  ["Documents", "/dashboard/documents", FileText],
-  ["Transportation", "/dashboard/transportation", Route],
-  ["Automation", "/dashboard/automation", Send],
-  ["Website", "/dashboard/website", Globe2],
-  ["Settings", "/dashboard/settings", Settings],
+  ["Dashboard", "Kennel command", "/dashboard", Gauge],
+  ["Dogs", "Program roster", "/dashboard/dogs", Dog],
+  ["Breeding Program", "Pairing engine", "/dashboard/breeding-program", HeartPulse],
+  ["Litters", "Whelping board", "/dashboard/litters", Baby],
+  ["Puppies", "Availability", "/dashboard/puppies", PawPrint],
+  ["Applications", "Screening", "/dashboard/applications", FileCheck2],
+  ["Buyers", "Client CRM", "/dashboard/buyers", Users],
+  ["Payments", "Revenue", "/dashboard/payments", CreditCard],
+  ["Documents", "Contracts", "/dashboard/documents", FileText],
+  ["Transportation", "Delivery", "/dashboard/transportation", Route],
+  ["Automation", "Email engine", "/dashboard/automation", Send],
+  ["Website", "Public site", "/dashboard/website", Globe2],
+  ["Settings", "Workspace", "/dashboard/settings", Settings],
 ] as const;
 
 export function SubscriberShell({ children, organization, subscription }: { children: ReactNode; organization: OrganizationContext; subscription: SubscriptionContext }) {
   const initials = organization.name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "MD";
 
   return (
-    <div className="min-h-screen bg-[#F7F5EF] text-[#1C2B39]">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[304px] px-4 py-4 xl:block">
-        <div className="flex h-full flex-col overflow-hidden rounded-[30px] border border-[#DED6C7] bg-[#FBFAF6] shadow-[0_22px_60px_rgba(49,88,66,0.12)]">
-          <div className="border-b border-[#E7DFD0] p-4">
-            <Link href="/dashboard" className="block rounded-[24px] border border-[#DED6C7] bg-white p-4 shadow-sm">
+    <div className="min-h-screen bg-[#F4F0E7] text-[#172638]">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-[312px] px-4 py-4 xl:block">
+        <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-[#D8CFBF] bg-[#FBFAF6] shadow-[0_26px_60px_rgba(49,88,66,0.16)]">
+          <div className="border-b border-[#E2D8C8] px-4 py-4">
+            <Link href="/dashboard" className="block rounded-[22px] border border-[#D8CFBF] bg-[radial-gradient(circle_at_18%_10%,rgba(199,168,102,0.22),transparent_40%),linear-gradient(145deg,#ffffff,#F4F0E7)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_16px_38px_rgba(49,88,66,0.10)]">
               <div className="flex items-start gap-3">
-                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#315842] text-white shadow-lg shadow-[#315842]/20">
-                  <PawPrint className="h-7 w-7" />
-                  <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#C7A866]" />
+                <div className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl border border-[#C7A866]/35 bg-[#315842] text-white shadow-[0_12px_28px_rgba(49,88,66,0.22)]">
+                  <PawPrint className="size-7" />
+                  <span className="absolute -right-1 -top-1 size-3 rounded-full border border-white bg-[#C7A866] shadow-[0_0_18px_rgba(199,168,102,0.75)]" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#B08A46]">Breeder Operating System</p>
-                  <p className="mt-1 truncate text-xl font-black tracking-tight text-[#1C2B39]">MyDogPortal</p>
-                  <p className="mt-1 truncate text-sm font-semibold text-[#66757A]">{organization.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#B08A46]">Breeder Operating System</p>
+                  <p className="mt-2 text-xl font-black tracking-tight text-[#172638]">MyDogPortal</p>
+                  <p className="mt-1 truncate text-sm font-semibold text-[#5C6872]">{organization.name}</p>
                 </div>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <BrandSignal label="Workspace" value={organization.role === "owner" ? "Owner" : "Staff"} />
+                <BrandSignal label="Status" value="Live" />
               </div>
             </Link>
           </div>
 
           <div className="px-4 py-4">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A8173]" />
-              <input aria-label="Search workspace" placeholder="Search workspace" className="h-11 w-full rounded-2xl border border-[#DED6C7] bg-white pl-9 pr-3 text-sm font-semibold outline-none placeholder:text-[#A59D90] focus:border-[#C7A866]" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#8A8173]" />
+              <input aria-label="Search workspace" placeholder="Search workspace" className="h-11 w-full rounded-xl border border-[#D8CFBF] bg-white pl-9 pr-3 text-sm font-semibold outline-none placeholder:text-[#A59D90] focus:border-[#C7A866]" />
             </div>
           </div>
 
-          <nav className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-            <div className="space-y-1.5">
-              {navItems.map(([label, href, Icon]) => (
-                <Link key={label} href={href} className="group flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-black text-[#52616B] transition hover:bg-white hover:text-[#315842] hover:shadow-sm">
-                  <span className="flex items-center gap-3"><Icon className="h-4 w-4 text-[#8A8173] transition group-hover:text-[#B08A46]" />{label}</span>
+          <div className="px-4 pb-2">
+            <div className="flex items-center gap-3 border-t border-[#E2D8C8] pt-3">
+              <div className="h-px flex-1 bg-[#E2D8C8]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-[#A88652]">Breeder Operations</p>
+              <div className="h-px flex-1 bg-[#E2D8C8]" />
+            </div>
+          </div>
+
+          <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+            <div className="space-y-2">
+              {navItems.map(([label, sublabel, href, Icon], index) => (
+                <Link key={label} href={href} className={`group flex items-center justify-between rounded-[18px] border px-3 py-3 transition ${index === 0 ? "border-[#C7A866]/65 bg-[#315842] text-white shadow-[0_12px_30px_rgba(49,88,66,0.18)]" : "border-[#E2D8C8] bg-white/55 text-[#334554] hover:border-[#C7A866]/50 hover:bg-white hover:shadow-sm"}`}>
+                  <span className="flex items-center gap-3">
+                    <span className={`flex size-9 items-center justify-center rounded-2xl border ${index === 0 ? "border-white/15 bg-white/12 text-[#F4D68C]" : "border-[#D8CFBF] bg-[#F8F5EE] text-[#315842]"}`}><Icon className="size-4" /></span>
+                    <span><span className="block text-sm font-black leading-tight">{label}</span><span className={`mt-1 block text-[11px] font-semibold leading-tight ${index === 0 ? "text-white/75" : "text-[#7B756A]"}`}>{sublabel}</span></span>
+                  </span>
+                  <span className={index === 0 ? "text-[#F4D68C]" : "text-[#B08A46]"}>›</span>
                 </Link>
               ))}
             </div>
           </nav>
 
-          <div className="border-t border-[#E7DFD0] p-4">
-            <div className="rounded-[24px] border border-[#DED6C7] bg-white p-4 shadow-sm">
+          <div className="border-t border-[#E2D8C8] p-4">
+            <div className="rounded-[22px] border border-[#D8CFBF] bg-white p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
               <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#EEF4EC] text-sm font-black text-[#315842]">{initials}</div>
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-[#D8CFBF] bg-[#F4F0E7] text-sm font-black text-[#315842]">{initials}</div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-black text-[#1C2B39]">{organization.name}</p>
-                  <p className="mt-1 text-xs font-bold text-[#66757A]">{subscription.planName} plan</p>
-                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[#EEF4EC] px-2.5 py-1 text-[11px] font-black text-[#315842]"><ShieldCheck className="h-3.5 w-3.5" />Protected</div>
+                  <p className="truncate text-sm font-black text-[#172638]">{organization.name}</p>
+                  <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-[#66757A]"><CircleDot className="size-3 fill-emerald-400 text-emerald-400" />Protected breeder workspace</div>
+                  <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#C7A866]/35 bg-[#FFF7E6] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-[#8A6422]"><PawPrint className="size-3" />{subscription.planName}</div>
                 </div>
               </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <FooterMeta icon={<ShieldCheck className="size-3.5" />} label="Access" value={organization.role === "owner" ? "Owner" : "Staff"} />
+                <FooterMeta icon={<PawPrint className="size-3.5" />} label="Plan" value={subscription.planName} />
+              </div>
               <form action={logoutAction} className="mt-4">
-                <button className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#DED6C7] bg-[#FBFAF6] px-4 text-sm font-black text-[#315842] transition hover:bg-[#F3EFE5]"><LogOut className="h-4 w-4" />Sign out</button>
+                <button className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#D8CFBF] bg-[#F8F5EE] px-4 text-sm font-black text-[#315842] transition hover:border-[#C7A866]/60 hover:bg-[#FFF7E6]"><LogOut className="size-4" />Log Out</button>
               </form>
             </div>
           </div>
         </div>
       </aside>
 
-      <div className="xl:pl-[304px]">
-        <header className="sticky top-0 z-30 border-b border-[#DED6C7] bg-[#F7F5EF]/92 px-4 py-3 backdrop-blur-xl md:px-7">
-          <div className="mx-auto flex max-w-[1560px] items-center justify-between gap-4">
+      <div className="xl:pl-[312px]">
+        <header className="sticky top-0 z-30 border-b border-[#D8CFBF] bg-[#F4F0E7]/92 px-5 py-4 backdrop-blur-xl lg:px-8">
+          <div className="mx-auto flex max-w-[1560px] items-center justify-between gap-5">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#B08A46]">Subscriber Workspace</p>
-              <p className="mt-1 text-lg font-black text-[#1C2B39]">{organization.name}</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#B08A46]">Subscriber Command</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <p className="text-lg font-black text-[#172638]">{organization.name}</p>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#D8CFBF] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#315842]"><CircleDot className="size-3 fill-emerald-400 text-emerald-400" />Owner Workspace</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#C7A866]/40 bg-[#FFF7E6] px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#8A6422]">{subscription.planName}</span>
+              </div>
             </div>
-            <div className="hidden min-w-[360px] items-center gap-2 rounded-full border border-[#DED6C7] bg-white px-4 py-2.5 shadow-sm lg:flex">
-              <Search className="h-4 w-4 text-[#8A8173]" />
-              <input className="w-full bg-transparent text-sm font-semibold outline-none placeholder:text-[#A59D90]" placeholder="Search dogs, buyers, contracts, payments..." />
+            <div className="relative hidden w-full max-w-md lg:block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#8A8173]" />
+              <input aria-label="Search workspace" placeholder="Search dogs, pairings, buyers, and notices" className="h-11 w-full rounded-xl border border-[#D8CFBF] bg-white pl-9 pr-3 text-sm font-semibold outline-none placeholder:text-[#A59D90] focus:border-[#C7A866]" />
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/dashboard/automation" className="hidden items-center gap-2 rounded-2xl bg-[#315842] px-4 py-2.5 text-sm font-black text-white shadow-sm shadow-[#315842]/15 md:flex"><Bot className="h-4 w-4" />Breeder Buddy</Link>
-              <Link href="/dashboard/settings" className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#DED6C7] bg-white text-[#315842] shadow-sm"><Settings className="h-5 w-5" /></Link>
-              <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[#DED6C7] bg-white text-[#315842] shadow-sm"><Bell className="h-5 w-5" /></button>
+              <Link href="/dashboard/automation" className="hidden items-center gap-2 rounded-xl bg-[#315842] px-4 py-2.5 text-sm font-black text-white shadow-sm shadow-[#315842]/15 md:flex"><Bot className="size-4" />Breeder Buddy</Link>
+              <Link href="/dashboard/settings" className="flex size-11 items-center justify-center rounded-xl border border-[#D8CFBF] bg-white text-[#315842] shadow-sm"><Settings className="size-5" /></Link>
+              <button className="relative flex size-11 items-center justify-center rounded-xl border border-[#D8CFBF] bg-white text-[#315842] shadow-sm"><Bell className="size-5" /></button>
             </div>
           </div>
         </header>
@@ -100,3 +124,6 @@ export function SubscriberShell({ children, organization, subscription }: { chil
     </div>
   );
 }
+
+function BrandSignal({ label, value }: { label: string; value: string }) { return <div className="rounded-2xl border border-[#E2D8C8] bg-white/70 px-3 py-2.5"><p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#9A875D]">{label}</p><p className="mt-1 text-sm font-black text-[#172638]">{value}</p></div>; }
+function FooterMeta({ icon, label, value }: { icon: ReactNode; label: string; value: string }) { return <div className="rounded-xl border border-[#E2D8C8] bg-[#FBFAF6] px-3 py-2.5"><div className="flex items-center gap-2 text-[#8A8173]"><span className="text-[#B08A46]">{icon}</span><p className="text-[10px] font-black uppercase tracking-[0.2em]">{label}</p></div><p className="mt-1 text-sm font-black text-[#172638]">{value}</p></div>; }
