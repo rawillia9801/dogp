@@ -12,20 +12,20 @@ export function PublicHeader() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-lg font-bold tracking-tight text-[#1F2933]">MyDogPortal</p>
-            <p className="truncate text-xs font-medium text-[#5B6B73]">Dog Breeder Web + Docs + Portal</p>
+            <p className="truncate text-xs font-medium text-[#5B6B73]">Breeder operating system</p>
           </div>
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm font-semibold text-[#5B6B73] md:flex">
           <Link href="/features" className="transition-colors hover:text-[#2F4F3E]">Features</Link>
-          <Link href="/features#assistant" className="inline-flex items-center gap-1.5 transition-colors hover:text-[#2F4F3E]"><Bot className="h-4 w-4" />Breeder Buddy AI</Link>
+          <Link href="/features#assistant" className="inline-flex items-center gap-1.5 transition-colors hover:text-[#2F4F3E]"><Bot className="h-4 w-4" />Chi Chi</Link>
           <Link href="/pricing" className="transition-colors hover:text-[#2F4F3E]">Pricing</Link>
           <Link href="/features#demo" className="transition-colors hover:text-[#2F4F3E]">Demo</Link>
         </nav>
 
         <div className="flex items-center gap-2">
           <Link href="/sign-in" className="inline-flex items-center justify-center rounded-full border border-[#D8CCB7] bg-white px-5 py-2.5 text-sm font-bold text-[#2F4F3E] shadow-sm transition hover:bg-[#F4EFE6]">Sign In</Link>
-          <Link href="/sign-up" className="hidden items-center justify-center rounded-full bg-[#2F4F3E] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#253F32] sm:inline-flex">Start your Trial</Link>
+          <Link href="/sign-up" className="hidden items-center justify-center rounded-full bg-[#2F4F3E] px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#253F32] sm:inline-flex">Start trial</Link>
         </div>
       </div>
     </header>
