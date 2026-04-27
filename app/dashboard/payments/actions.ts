@@ -18,7 +18,10 @@ export async function createPaymentRecord(formData: FormData) {
   const buyerId = await resolveBuyer(admin, organizationId, buyerName);
   if (!buyerId) redirect("/dashboard/payments/new?error=buyer_lookup_failed");
 
-  const { error } = await admin.from("buyer_payments").insert(buildPaymentPayload(formData, buyerId, organizationId));
+  const paymentAccountId = await resolvePaymentAccount(admin, organizationId, buyerId);
+  if (!paymentAccountId) redirect("/dashboard/payments/new?error=payment_account_failed");
+
+  const { error } = await admin.from("buyer_payments").insert(buildPaymentPayload(formData, buyerId, organizationId, paymentAccountId));
   if (error) redirect(`/dashboard/payments/new?error=save_failed&message=${encodeURIComponent(error.message.slice(0,220))}`);
 
   revalidatePath("/dashboard"); revalidatePath("/dashboard/payments"); revalidatePath("/dashboard/buyers"); redirect("/dashboard/payments?created=1");
@@ -31,7 +34,9 @@ export async function updatePaymentRecord(formData: FormData) {
   if (!admin || !organizationId || !paymentId) redirect("/dashboard/payments?error=config");
   const buyerId = await resolveBuyer(admin, organizationId, clean(formData.get("buyer_name")));
   if (!buyerId) redirect(`/dashboard/payments/${paymentId}/edit?error=buyer_lookup_failed`);
-  const payload = buildPaymentPayload(formData, buyerId, organizationId);
+  const paymentAccountId = await resolvePaymentAccount(admin, organizationId, buyerId);
+  if (!paymentAccountId) redirect(`/dashboard/payments/${paymentId}/edit?error=payment_account_failed`);
+  const payload = buildPaymentPayload(formData, buyerId, organizationId, paymentAccountId);
   const { organization_id, ...updatePayload } = payload;
   const { error } = await admin.from("buyer_payments").update(updatePayload).eq("id", paymentId).eq("organization_id", organizationId);
   if (error) redirect(`/dashboard/payments/${paymentId}/edit?error=save_failed&message=${encodeURIComponent(error.message.slice(0,220))}`);
@@ -50,12 +55,20 @@ async function resolveBuyer(admin: any, organizationId: string, buyerName: strin
   if (!buyerName) return null;
   const { data: existingBuyer } = await admin.from("buyers").select("id").eq("organization_id", organizationId).ilike("full_name", buyerName).maybeSingle();
   if (existingBuyer?.id) return existingBuyer.id;
-  const { data: newBuyer } = await admin.from("buyers").insert({ organization_id: organizationId, full_name: buyerName, email: `${buyerName.toLowerCase().replace(/\s+/g, ".")}@placeholder.local`, status: "lead" }).select("id").single();
+  const emailLocalPart = buyerName.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "") || "buyer";
+  const { data: newBuyer } = await admin.from("buyers").insert({ organization_id: organizationId, full_name: buyerName, email: `${emailLocalPart}@placeholder.local`, status: "lead" }).select("id").single();
   return newBuyer?.id ?? null;
 }
 
-function buildPaymentPayload(formData: FormData, buyerId: string, organizationId: string) {
-  return { organization_id: organizationId, buyer_id: buyerId, amount: toNumberOrZero(formData.get("payment_amount")), payment_date: clean(formData.get("payment_date")) || new Date().toISOString().slice(0,10), payment_type: clean(formData.get("payment_type")) || "deposit", payment_method: clean(formData.get("method")) || "manual", status: "received" };
+async function resolvePaymentAccount(admin: any, organizationId: string, buyerId: string) {
+  const { data: existingAccount } = await admin.from("buyer_payment_accounts").select("id").eq("organization_id", organizationId).eq("buyer_id", buyerId).maybeSingle();
+  if (existingAccount?.id) return existingAccount.id;
+  const { data: newAccount } = await admin.from("buyer_payment_accounts").insert({ organization_id: organizationId, buyer_id: buyerId, balance: 0, status: "active" }).select("id").single();
+  return newAccount?.id ?? null;
+}
+
+function buildPaymentPayload(formData: FormData, buyerId: string, organizationId: string, paymentAccountId: string) {
+  return { organization_id: organizationId, buyer_id: buyerId, payment_account_id: paymentAccountId, amount: toNumberOrZero(formData.get("payment_amount")), payment_date: clean(formData.get("payment_date")) || new Date().toISOString().slice(0,10), payment_type: clean(formData.get("payment_type")) || "deposit", payment_method: clean(formData.get("method")) || "manual", status: "received" };
 }
 function clean(value: FormDataEntryValue | null) { return String(value || "").trim(); }
 function toNumberOrZero(value: FormDataEntryValue | null) { const n = Number(clean(value)); return Number.isFinite(n) ? n : 0; }
