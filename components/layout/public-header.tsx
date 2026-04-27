@@ -18,7 +18,7 @@ export function PublicHeader() {
 
         <nav className="hidden items-center gap-7 text-sm font-semibold text-[#5B6B73] md:flex">
           <Link href="/features" className="transition-colors hover:text-[#2F4F3E]">Features</Link>
-          <Link href="/features#assistant" className="inline-flex items-center gap-1.5 transition-colors hover:text-[#2F4F3E]"><Bot className="h-4 w-4" />Chi Chi</Link>
+          <Link href="/features#assistant" className="inline-flex items-center gap-1.5 transition-colors hover:text-[#2F4F3E]"><Bot className="h-4 w-4" />BreederBuddy AI</Link>
           <Link href="/pricing" className="transition-colors hover:text-[#2F4F3E]">Pricing</Link>
           <Link href="/features#demo" className="transition-colors hover:text-[#2F4F3E]">Demo</Link>
         </nav>
