@@ -1,7 +1,7 @@
 # mydogportal.site
 
 Premium breeder operating system for kennel management, breeding program control,
-buyer operations, notices, and workflow automation.
+buyer operations, notices, workflow automation, and buyer-facing records.
 
 ## Product Standard
 
@@ -9,13 +9,14 @@ Project-wide product, design, and voice rules are locked in:
 
 - [Product Rules](./PRODUCT_RULES.md)
 
-All admin work must follow that standard without visual or tonal drift.
+## Current Confirmed Application Areas
 
-## Current Application Areas
+Implemented or actively scaffolded in the repository:
 
 - Public site
 - Authentication
-- Admin dashboard
+- Admin workspace shell
+- Dashboard
 - Dogs
 - Breeding Program
 - Litters
@@ -26,11 +27,25 @@ All admin work must follow that standard without visual or tonal drift.
 - Documents
 - Transportation
 - Automation
+- Website Builder
 - Settings
 - Billing
 - Buyer portal
+- AI assistant layer
 
-## Routes
+## Current Plan Model
+
+The active subscription architecture is:
+
+- Starter
+- Professional
+- Premium
+
+Feature access and usage limits are gated from these three plans in code.
+
+## Current Route State
+
+Primary production-facing route family:
 
 - `/`
 - `/features`
@@ -48,9 +63,20 @@ All admin work must follow that standard without visual or tonal drift.
 - `/admin/documents`
 - `/admin/transportation`
 - `/admin/automation`
+- `/admin/website-builder`
 - `/admin/settings`
 - `/admin/billing`
 - `/portal`
+
+Secondary dashboard route family also exists in repository and should be treated as an active compatibility layer under review for consolidation:
+
+- `/dashboard/...`
+
+## Repository Truth Note
+
+Some modules are fully wired with actions and schema support.
+Some modules are scaffolded and gated but still require deeper completion.
+Documentation should not describe every area as fully mature until route-by-route verification is complete.
 
 ## Environment
 
