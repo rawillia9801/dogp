@@ -46,12 +46,19 @@ export async function updateEmailTemplate(organizationId: string, input: { id: s
 }
 
 export async function sendTestEmail(organizationId: string, templateKey: string, buyerId?: string | null) {
+  return sendNoticeFromTemplate(organizationId, templateKey, buyerId, true);
+}
+
+export async function sendNoticeFromTemplate(organizationId: string, templateKey: string, buyerId?: string | null, test = false) {
   const admin = createSupabaseAdminClient(); if (!admin) throw new Error("Supabase admin client is not configured.");
   const [automation, business, breeder] = await Promise.all([getAutomationWorkspaceData(organizationId), getBusinessWorkspaceData(organizationId), getBreederWorkspaceData(organizationId)]);
   const template = automation.templates.find((t) => t.templateKey === templateKey); const buyer = (buyerId ? business.buyers.find((b) => b.id === buyerId) : null) ?? business.buyers[0] ?? null; const puppy = buyer ? breeder.puppies.find((p) => p.buyerId === buyer.id) ?? null : null;
   if (!template || !buyer) throw new Error("Template or buyer missing.");
-  const rendered = renderNoticeTemplate(template, { buyer_name: buyer.fullName, puppy_name: puppy?.callName ?? puppy?.puppyName ?? "your puppy", breeder_name: "MyDogPortal.site", amount_due: 0, balance: 0, due_date: "", delivery_date: "" });
-  const { error } = await admin.from("notice_logs").insert({ organization_id: organizationId, notice_type: template.noticeType, buyer_id: buyer.id, puppy_id: puppy?.id ?? null, sent_at: new Date().toISOString(), delivery_status: "sent", provider: "Test Mode", provider_message_id: `test_${Date.now()}`, dedupe_key: `manual_test_${Date.now()}`, related_type: "manual_test", related_id: null, failure_reason: null });
+  const paymentPlan = business.paymentPlans.find((plan) => plan.buyerId === buyer.id) ?? null;
+  const paymentTotal = business.payments.filter((payment) => payment.buyerId === buyer.id).reduce((sum, payment) => sum + payment.amount, 0);
+  const balance = paymentPlan ? Math.max(paymentPlan.totalPrice - paymentTotal, 0) : 0;
+  const rendered = renderNoticeTemplate(template, { buyer_name: buyer.fullName, puppy_name: puppy?.callName ?? puppy?.puppyName ?? "your puppy", breeder_name: "MyDogPortal.site", amount_due: paymentPlan?.monthlyAmount ?? balance, balance, due_date: paymentPlan?.nextDueDate ?? "", delivery_date: "" });
+  const { error } = await admin.from("notice_logs").insert({ organization_id: organizationId, notice_type: template.noticeType, buyer_id: buyer.id, puppy_id: puppy?.id ?? null, sent_at: new Date().toISOString(), delivery_status: "sent", provider: test ? "Test Mode" : "Manual Mode", provider_message_id: `${test ? "test" : "manual"}_${Date.now()}`, dedupe_key: `${test ? "manual_test" : "manual_send"}_${Date.now()}`, related_type: test ? "manual_test" : "manual_send", related_id: null, failure_reason: null });
   if (error) throw new Error(error.message);
   refreshAutomationViews();
   return { status: "sent", preview: rendered.subject };
