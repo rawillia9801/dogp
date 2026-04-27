@@ -54,7 +54,7 @@ async function resolveDog(admin: any, organizationId: string, dogName: string, s
 }
 
 function buildPayload(formData: FormData, organizationId: string, litterName: string, damId: string | null, sireId: string | null) {
-  return { organization_id: organizationId, litter_name: litterName, dam_id: damId, sire_id: sireId, status: normalizeSelect(formData.get("status"), allowedStatuses, "planned"), bred_date: clean(formData.get("breeding_date")) || null, due_date: clean(formData.get("due_date")) || null, whelp_date: clean(formData.get("whelp_date")) || null, expected_size: clean(formData.get("puppies_born")) || null, reservation_goal: toNumberOrNull(formData.get("reserved_spots")), notes: buildNotes(formData) };
+  return { organization_id: organizationId, litter_name: litterName, dam_id: damId, sire_id: sireId, status: normalizeSelect(formData.get("status"), allowedStatuses, "planned"), bred_date: clean(formData.get("breeding_date")) || clean(formData.get("bred_date")) || null, due_date: clean(formData.get("due_date")) || null, whelp_date: clean(formData.get("whelp_date")) || null, expected_size: clean(formData.get("puppies_born")) || clean(formData.get("expected_size")) || null, reservation_goal: toNumberOrNull(formData.get("reserved_spots")) ?? toNumberOrNull(formData.get("reservation_goal")), notes: buildNotes(formData) };
 }
 
 function buildNotes(formData: FormData) { const parts = [["Available Spots", clean(formData.get("available_spots"))], ["Deposit Collected", clean(formData.get("deposit_collected"))]].filter(([, value]) => value); const notes = clean(formData.get("notes")); const generated = parts.map(([label, value]) => `${label}: ${value}`).join("\n"); return [generated, notes].filter(Boolean).join("\n\n") || null; }
