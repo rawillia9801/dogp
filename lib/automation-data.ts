@@ -11,8 +11,28 @@ type AutomationSettingsRow = { id: string; organization_id: string; notices_enab
 export type AutomationWorkspaceData = { templates: NoticeTemplate[]; rules: NoticeRule[]; logs: NoticeLog[]; workflowRuns: WorkflowRun[]; workflowEvents: WorkflowEvent[]; settings: AutomationSettings | null; };
 export const noticeVariables = ["breeder_name", "buyer_name", "puppy_name", "litter_name", "amount_due", "balance", "due_date", "transport_date", "document_title", "status"];
 
-const defaultTemplates: NoticeTemplate[] = [template("payment-reminder", "Payment Reminder", "payment_reminder", "Upcoming payment for {{puppy_name}}", "Hi {{buyer_name}}, your next payment of {{amount_due}} is scheduled for {{due_date}}. Your current balance is {{balance}}."), template("document-ready", "Document Ready", "document_ready", "{{document_title}} is ready", "Hi {{buyer_name}}, {{document_title}} is ready in your buyer file."), template("puppy-update", "Puppy Update", "puppy_update", "{{puppy_name}} update", "Hi {{buyer_name}}, {{puppy_name}} has a new update from {{breeder_name}}.")];
-const defaultRules: NoticeRule[] = [rule("payment-due", "Payment Reminder", "payment_due", -3, "payment-reminder", { requires_balance: true }), rule("document-ready", "Document Ready", "document_ready", 0, "document-ready", { buyer_required: true }), rule("puppy-update", "Puppy Update", "puppy_update", 0, "puppy-update", { buyer_required: true })];
+const defaultTemplates: NoticeTemplate[] = [
+  template("payment-reminder", "Payment Reminder", "payment_reminder", "Upcoming payment for {{puppy_name}}", "Hi {{buyer_name}}, your next payment of {{amount_due}} is scheduled for {{due_date}}. Your current balance is {{balance}}."),
+  template("payment-overdue", "Payment Overdue Notice", "payment_overdue_notice", "Payment attention needed", "Hi {{buyer_name}}, your payment scheduled for {{due_date}} needs attention. Current balance: {{balance}}."),
+  template("document-ready", "Document Ready", "document_ready", "{{document_title}} is ready", "Hi {{buyer_name}}, {{document_title}} is ready in your buyer file."),
+  template("document-signed", "Document Signed", "document_signed", "{{document_title}} has been signed", "Hi {{buyer_name}}, {{document_title}} is signed and recorded."),
+  template("application-received", "Buyer Application Received", "application_submitted", "Application received", "Hi {{buyer_name}}, your application has been received and is under breeder review."),
+  template("buyer-approved", "Buyer Approved", "application_approved", "Buyer file approved", "Hi {{buyer_name}}, your buyer file has been approved. Status: {{status}}."),
+  template("puppy-reserved", "Puppy Reserved", "puppy_reserved", "{{puppy_name}} reservation recorded", "Hi {{buyer_name}}, your reservation for {{puppy_name}} is recorded."),
+  template("puppy-update", "Puppy Update", "puppy_update", "{{puppy_name}} update", "Hi {{buyer_name}}, {{puppy_name}} has a new update from {{breeder_name}}."),
+  template("milestone-update", "Milestone Update", "milestone_update", "{{litter_name}} milestone update", "Hi {{buyer_name}}, {{litter_name}} has reached {{status}}."),
+  template("go-home-reminder", "Go-Home Reminder", "go_home_reminder", "Go-home preparation for {{puppy_name}}", "Hi {{buyer_name}}, {{puppy_name}} is preparing for go-home. Please review your pickup details."),
+];
+const defaultRules: NoticeRule[] = [
+  rule("payment-due-3-days", "Payment Due in 3 Days", "payment_due", -3, "payment-reminder", { requires_balance: true }),
+  rule("payment-overdue-2-days", "Payment Overdue Follow-up", "payment_overdue", 2, "payment-overdue", { requires_balance: true }),
+  rule("application-received", "Application Auto Follow-up", "application_submitted", 0, "application-received", { buyer_required: true }),
+  rule("document-ready", "Document Ready Notice", "document_ready", 0, "document-ready", { buyer_required: true }),
+  rule("document-signed", "Document Signed Notice", "document_signed", 0, "document-signed", { buyer_required: true }),
+  rule("puppy-reserved", "Puppy Reserved Notice", "puppy_reserved", 0, "puppy-reserved", { buyer_required: true, puppy_statuses: ["reserved"] }),
+  rule("puppy-weekly-update", "Weekly Puppy Update", "puppy_update", 0, "puppy-update", { buyer_required: true, puppy_statuses: ["reserved", "sold", "hold"] }),
+  rule("go-home-ready", "Go-Home Reminder", "go_home_ready", 0, "go-home-reminder", { buyer_required: true, go_home_ready: true }),
+];
 const emptyAutomationData: AutomationWorkspaceData = { templates: defaultTemplates, rules: defaultRules, logs: [], workflowRuns: [], workflowEvents: [], settings: null };
 
 export async function getAutomationWorkspaceData(organizationId: string): Promise<AutomationWorkspaceData> {
@@ -26,9 +46,9 @@ export async function getAutomationWorkspaceData(organizationId: string): Promis
     supabase.from("workflow_events").select("*").eq("organization_id", organizationId).order("created_at", { ascending: false }).limit(40).returns<WorkflowEventRow[]>(),
     supabase.from("automation_settings").select("*").eq("organization_id", organizationId).limit(1).returns<AutomationSettingsRow[]>(),
   ]);
-  const templates = (templatesResult.data ?? []).map(mapTemplate);
+  const templates = mergeDefaultTemplates((templatesResult.data ?? []).map(mapTemplate));
   const rules = (rulesResult.data ?? []).map(mapRule);
-  return { templates: templates.length ? templates : defaultTemplates, rules: rules.length ? rules : defaultRules, logs: (logsResult.data ?? []).map(mapLog), workflowRuns: (workflowRunsResult.data ?? []).map(mapWorkflowRun), workflowEvents: (workflowEventsResult.data ?? []).map(mapWorkflowEvent), settings: settingsResult.data?.[0] ? mapSettings(settingsResult.data[0]) : null };
+  return { templates, rules: rules.length ? rules : defaultRules, logs: (logsResult.data ?? []).map(mapLog), workflowRuns: (workflowRunsResult.data ?? []).map(mapWorkflowRun), workflowEvents: (workflowEventsResult.data ?? []).map(mapWorkflowEvent), settings: settingsResult.data?.[0] ? mapSettings(settingsResult.data[0]) : null };
 }
 
 function template(templateKey: string, category: string, noticeType: string, subject: string, body: string): NoticeTemplate { const now = new Date().toISOString(); return { id: templateKey, organizationId: null, templateKey, category, noticeType, subject, body, status: "enabled", isActive: true, timingRule: "Rule based", recipientRules: { buyer: true }, variables: noticeVariables, createdAt: now, updatedAt: now }; }
@@ -39,5 +59,6 @@ function mapLog(row: NoticeLogRow): NoticeLog { return { id: row.id, organizatio
 function mapWorkflowRun(row: WorkflowRunRow): WorkflowRun { return { id: row.id, organizationId: row.organization_id, runKey: row.run_key, status: row.status, startedAt: row.started_at, finishedAt: row.finished_at, summary: row.summary ?? {}, createdAt: row.created_at, updatedAt: row.updated_at }; }
 function mapWorkflowEvent(row: WorkflowEventRow): WorkflowEvent { return { id: row.id, organizationId: row.organization_id, runId: row.run_id, eventKey: row.event_key, eventType: row.event_type, relatedType: row.related_type, relatedId: row.related_id, status: row.status, payload: row.payload ?? {}, createdAt: row.created_at }; }
 function mapSettings(row: AutomationSettingsRow): AutomationSettings { return { id: row.id, organizationId: row.organization_id, noticesEnabled: row.notices_enabled, paymentNoticesEnabled: row.payment_notices_enabled, documentNoticesEnabled: row.document_notices_enabled, transportationNoticesEnabled: row.transportation_notices_enabled, puppyMilestoneNoticesEnabled: row.puppy_milestone_notices_enabled, providerName: row.provider_name, fromEmail: row.from_email, replyToEmail: row.reply_to_email, quietHours: row.quiet_hours ?? {}, createdAt: row.created_at, updatedAt: row.updated_at }; }
+function mergeDefaultTemplates(templates: NoticeTemplate[]) { const byKey = new Map(defaultTemplates.map((item) => [item.templateKey, item])); for (const item of templates) byKey.set(item.templateKey, item); return Array.from(byKey.values()); }
 function extractVariables(value: NoticeTemplateRow["variables"]) { return Array.isArray(value) ? value.map(String) : noticeVariables; }
 function humanizeTemplateKey(value: string) { return value.split(/[_-]/).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" "); }
