@@ -24,6 +24,8 @@ export async function createPaymentRecord(formData: FormData) {
   const { error } = await admin.from("buyer_payments").insert(buildPaymentPayload(formData, buyerId, organizationId, paymentAccountId));
   if (error) redirect(`/dashboard/payments/new?error=save_failed&message=${encodeURIComponent(error.message.slice(0,220))}`);
 
+  await reducePaymentAccountBalance(admin, paymentAccountId, amount);
+
   revalidatePath("/dashboard"); revalidatePath("/dashboard/payments"); revalidatePath("/dashboard/buyers"); redirect("/dashboard/payments?created=1");
 }
 
@@ -46,8 +48,10 @@ export async function updatePaymentRecord(formData: FormData) {
 export async function deletePaymentRecord(formData: FormData) {
   const admin = createSupabaseAdminClient();
   const organizationId = await getCurrentOrganizationId();
-  if (!admin || !organizationId || !clean(formData.get("payment_id"))) redirect("/dashboard/payments?error=delete_failed");
-  await admin.from("buyer_payments").delete().eq("id", clean(formData.get("payment_id"))).eq("organization_id", organizationId);
+  const paymentId = clean(formData.get("payment_id"));
+  if (!admin || !organizationId || !paymentId) redirect("/dashboard/payments?error=delete_failed");
+  const { error } = await admin.from("buyer_payments").delete().eq("id", paymentId).eq("organization_id", organizationId);
+  if (error) redirect(`/dashboard/payments?error=delete_failed&message=${encodeURIComponent(error.message.slice(0,220))}`);
   revalidatePath("/dashboard"); revalidatePath("/dashboard/payments"); redirect("/dashboard/payments?deleted=1");
 }
 
@@ -56,19 +60,28 @@ async function resolveBuyer(admin: any, organizationId: string, buyerName: strin
   const { data: existingBuyer } = await admin.from("buyers").select("id").eq("organization_id", organizationId).ilike("full_name", buyerName).maybeSingle();
   if (existingBuyer?.id) return existingBuyer.id;
   const emailLocalPart = buyerName.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.+|\.+$/g, "") || "buyer";
-  const { data: newBuyer } = await admin.from("buyers").insert({ organization_id: organizationId, full_name: buyerName, email: `${emailLocalPart}@placeholder.local`, status: "lead" }).select("id").single();
+  const { data: newBuyer } = await admin.from("buyers").insert({ organization_id: organizationId, full_name: buyerName, email: `${emailLocalPart}@placeholder.local`, status: "pending" }).select("id").single();
   return newBuyer?.id ?? null;
 }
 
 async function resolvePaymentAccount(admin: any, organizationId: string, buyerId: string) {
-  const { data: existingAccount } = await admin.from("buyer_payment_accounts").select("id").eq("organization_id", organizationId).eq("buyer_id", buyerId).maybeSingle();
+  const { data: existingAccount } = await admin.from("buyer_payment_accounts").select("id").eq("organization_id", organizationId).eq("buyer_id", buyerId).order("created_at", { ascending: false }).limit(1).maybeSingle();
   if (existingAccount?.id) return existingAccount.id;
-  const { data: newAccount } = await admin.from("buyer_payment_accounts").insert({ organization_id: organizationId, buyer_id: buyerId, balance: 0, status: "active" }).select("id").single();
+
+  const { data: newAccount, error } = await admin.from("buyer_payment_accounts").insert({ organization_id: organizationId, buyer_id: buyerId, sale_price: 0, deposit_amount: 0, balance: 0, billing_status: "not_started" }).select("id").single();
+  if (error) console.error("buyer_payment_accounts create failed", error.message);
   return newAccount?.id ?? null;
 }
 
+async function reducePaymentAccountBalance(admin: any, paymentAccountId: string, amount: number) {
+  const { data: account } = await admin.from("buyer_payment_accounts").select("balance").eq("id", paymentAccountId).maybeSingle();
+  if (!account) return;
+  const balance = Math.max(0, Number(account.balance ?? 0) - amount);
+  await admin.from("buyer_payment_accounts").update({ balance, updated_at: new Date().toISOString() }).eq("id", paymentAccountId);
+}
+
 function buildPaymentPayload(formData: FormData, buyerId: string, organizationId: string, paymentAccountId: string) {
-  return { organization_id: organizationId, buyer_id: buyerId, payment_account_id: paymentAccountId, amount: toNumberOrZero(formData.get("payment_amount")), payment_date: clean(formData.get("payment_date")) || new Date().toISOString().slice(0,10), payment_type: clean(formData.get("payment_type")) || "deposit", payment_method: clean(formData.get("method")) || "manual", status: "received" };
+  return { organization_id: organizationId, buyer_id: buyerId, payment_account_id: paymentAccountId, amount: toNumberOrZero(formData.get("payment_amount")), payment_date: clean(formData.get("payment_date")) || new Date().toISOString().slice(0,10), payment_type: clean(formData.get("payment_type")) || "deposit", payment_method: clean(formData.get("method")) || "manual", status: "received", note: clean(formData.get("note")) || null };
 }
 function clean(value: FormDataEntryValue | null) { return String(value || "").trim(); }
 function toNumberOrZero(value: FormDataEntryValue | null) { const n = Number(clean(value)); return Number.isFinite(n) ? n : 0; }
