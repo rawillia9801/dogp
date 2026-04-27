@@ -25,7 +25,7 @@ export function SubscriberShell({ children, organization, subscription }: { chil
   return (
     <div className="min-h-screen bg-[#F4F0E7] text-[#172638]">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[312px] px-4 py-4 xl:block">
-        <div className="flex h-full flex-col overflow-hidden rounded-[28px] border border-[#D8CFBF] bg-[#FBFAF6] shadow-[0_26px_60px_rgba(49,88,66,0.16)]">
+        <div className="grid h-full grid-rows-[auto_auto_auto_minmax(0,1fr)_auto] overflow-hidden rounded-[28px] border border-[#D8CFBF] bg-[#FBFAF6] shadow-[0_26px_60px_rgba(49,88,66,0.16)]">
           <div className="border-b border-[#E2D8C8] px-4 py-4">
             <Link href="/dashboard" className="block rounded-[22px] border border-[#D8CFBF] bg-[radial-gradient(circle_at_18%_10%,rgba(199,168,102,0.22),transparent_40%),linear-gradient(145deg,#ffffff,#F4F0E7)] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_16px_38px_rgba(49,88,66,0.10)]">
               <div className="flex items-start gap-3">
@@ -53,7 +53,7 @@ export function SubscriberShell({ children, organization, subscription }: { chil
             </div>
           </div>
 
-          <div className="px-4 pb-2">
+          <div className="shrink-0 px-4 pb-2">
             <div className="flex items-center gap-3 border-t border-[#E2D8C8] pt-3">
               <div className="h-px flex-1 bg-[#E2D8C8]" />
               <p className="text-[10px] font-black uppercase tracking-[0.26em] text-[#A88652]">Breeder Operations</p>
@@ -61,7 +61,7 @@ export function SubscriberShell({ children, organization, subscription }: { chil
             </div>
           </div>
 
-          <nav className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
+          <nav className="min-h-0 overflow-y-auto overscroll-contain px-3 pb-4">
             <div className="space-y-2">
               {navItems.map(([label, sublabel, href, Icon], index) => (
                 <Link key={label} href={href} className={`group flex items-center justify-between rounded-[18px] border px-3 py-3 transition ${index === 0 ? "border-[#C7A866]/65 bg-[#315842] text-white shadow-[0_12px_30px_rgba(49,88,66,0.18)]" : "border-[#E2D8C8] bg-white/55 text-[#334554] hover:border-[#C7A866]/50 hover:bg-white hover:shadow-sm"}`}>
