@@ -42,7 +42,7 @@ export async function deleteLitterRecord(formData: FormData) {
 }
 
 function buildPayload(formData: FormData, organizationId: string, litterName: string) {
-  return { organization_id: organizationId, litter_name: litterName, status: normalizeSelect(formData.get("status"), allowedStatuses, "planned"), breeding_date: clean(formData.get("breeding_date")) || null, due_date: clean(formData.get("due_date")) || null, whelp_date: clean(formData.get("whelp_date")) || null, expected_size: clean(formData.get("expected_size")) || null, reservation_goal: toNumberOrNull(formData.get("reservation_goal")), notes: buildNotes(formData) };
+  return { organization_id: organizationId, litter_name: litterName, status: normalizeSelect(formData.get("status"), allowedStatuses, "planned"), bred_date: clean(formData.get("breeding_date")) || null, due_date: clean(formData.get("due_date")) || null, whelp_date: clean(formData.get("whelp_date")) || null, expected_size: clean(formData.get("expected_size")) || null, reservation_goal: toNumberOrNull(formData.get("reservation_goal")), notes: buildNotes(formData) };
 }
 
 function buildNotes(formData: FormData) { const parts = [["Sire", clean(formData.get("sire"))], ["Dam", clean(formData.get("dam"))], ["Puppies Born", clean(formData.get("puppies_born"))], ["Available Spots", clean(formData.get("available_spots"))], ["Reserved Spots", clean(formData.get("reserved_spots"))], ["Deposit Collected", clean(formData.get("deposit_collected"))]].filter(([, value]) => value); const notes = clean(formData.get("notes")); const generated = parts.map(([label, value]) => `${label}: ${value}`).join("\n"); return [generated, notes].filter(Boolean).join("\n\n") || null; }
