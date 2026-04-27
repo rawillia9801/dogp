@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Baby, Bell, Bot, CircleDot, CreditCard, Dog, FileCheck2, FileText, Gauge, Globe2, HeartPulse, LogOut, PawPrint, Route, Send, Settings, Users } from "lucide-react";
+import { Baby, Bell, Bot, CircleDot, CreditCard, Dog, FileCheck2, FileText, Gauge, Globe2, HeartPulse, LogOut, PawPrint, Route, Search, Send, Settings, Users } from "lucide-react";
 import { logoutAction, type OrganizationContext, type SubscriptionContext } from "@/lib/auth";
 
 const navItems = [
@@ -35,18 +35,18 @@ export function SubscriberShell({ children, organization, subscription }: { chil
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-3 flex items-center gap-3">
             <div className="h-px flex-1 bg-[#E2D8C8]" />
             <p className="text-[10px] font-black uppercase tracking-[0.26em] text-[#A88652]">Breeder Operations</p>
             <div className="h-px flex-1 bg-[#E2D8C8]" />
           </div>
 
-          <nav className="mt-4 space-y-2">
+          <nav className="mt-3 space-y-1.5">
             {navItems.map(([label, sublabel, href, Icon], index) => (
-              <Link key={label} href={href} className={`group flex items-center justify-between rounded-[18px] border px-3 py-2.5 transition ${index === 0 ? "border-[#C7A866]/65 bg-[#315842] text-white shadow-[0_12px_30px_rgba(49,88,66,0.18)]" : "border-[#E2D8C8] bg-white/55 text-[#334554] hover:border-[#C7A866]/50 hover:bg-white hover:shadow-sm"}`}>
-                <span className="flex items-center gap-3">
-                  <span className={`flex size-8 items-center justify-center rounded-2xl border ${index === 0 ? "border-white/15 bg-white/12 text-[#F4D68C]" : "border-[#D8CFBF] bg-[#F8F5EE] text-[#315842]"}`}><Icon className="size-4" /></span>
-                  <span><span className="block text-sm font-black leading-tight">{label}</span><span className={`mt-0.5 block text-[11px] font-semibold leading-tight ${index === 0 ? "text-white/75" : "text-[#7B756A]"}`}>{sublabel}</span></span>
+              <Link key={label} href={href} className={`group flex items-center justify-between rounded-[15px] border px-3 py-1.5 transition ${index === 0 ? "border-[#C7A866]/65 bg-[#315842] text-white shadow-[0_10px_24px_rgba(49,88,66,0.16)]" : "border-[#E2D8C8] bg-white/55 text-[#334554] hover:border-[#C7A866]/50 hover:bg-white hover:shadow-sm"}`}>
+                <span className="flex items-center gap-2.5">
+                  <span className={`flex size-7 items-center justify-center rounded-xl border ${index === 0 ? "border-white/15 bg-white/12 text-[#F4D68C]" : "border-[#D8CFBF] bg-[#F8F5EE] text-[#315842]"}`}><Icon className="size-3.5" /></span>
+                  <span><span className="block text-[13px] font-black leading-tight">{label}</span><span className={`block text-[10px] font-semibold leading-tight ${index === 0 ? "text-white/75" : "text-[#7B756A]"}`}>{sublabel}</span></span>
                 </span>
                 <span className={index === 0 ? "text-[#F4D68C]" : "text-[#B08A46]"}>›</span>
               </Link>
@@ -65,6 +65,10 @@ export function SubscriberShell({ children, organization, subscription }: { chil
                 <span className="inline-flex items-center gap-2 rounded-full border border-[#D8CFBF] bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#315842]"><CircleDot className="size-3 fill-emerald-400 text-emerald-400" />Owner Workspace</span>
                 <span className="inline-flex items-center gap-2 rounded-full border border-[#C7A866]/40 bg-[#FFF7E6] px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-[#8A6422]">{subscription.planName}</span>
               </div>
+            </div>
+            <div className="relative hidden w-full max-w-md lg:block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#8A8173]" />
+              <input aria-label="Search workspace" placeholder="Search dogs, buyers, contracts, payments..." className="h-11 w-full rounded-xl border border-[#D8CFBF] bg-white pl-9 pr-3 text-sm font-semibold outline-none placeholder:text-[#A59D90] focus:border-[#C7A866]" />
             </div>
             <div className="flex items-center gap-2">
               <Link href="/dashboard/automation" className="hidden items-center gap-2 rounded-xl bg-[#315842] px-4 py-2.5 text-sm font-black text-white shadow-sm shadow-[#315842]/15 md:flex"><Bot className="size-4" />Breeder Buddy</Link>
