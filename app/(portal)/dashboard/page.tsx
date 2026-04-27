@@ -1,239 +1,125 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
+  ArrowRight,
   Baby,
   BadgeCheck,
-  Bell,
-  Bot,
   CalendarClock,
   CheckCircle2,
-  ChevronRight,
-  ClipboardSignature,
+  ClipboardList,
   CreditCard,
   Dog,
-  FileCheck2,
-  FileText,
-  Gauge,
-  Globe2,
   HeartPulse,
   PawPrint,
-  Plus,
-  Route,
-  Search,
-  Send,
-  Settings,
-  ShieldCheck,
+  PlusCircle,
   Sparkles,
+  Timer,
   TimerReset,
   Truck,
   Users,
-  WandSparkles,
 } from "lucide-react";
 import { getDashboardData } from "@/lib/dashboard-data";
 
-const navItems = [
-  ["Command Center", "/dashboard", Gauge, true],
-  ["Dogs", "/dashboard/dogs", Dog],
-  ["Breeding Program", "/dashboard/breeding-program", HeartPulse],
-  ["Litters", "/dashboard/litters", Baby],
-  ["Puppies", "/dashboard/puppies", PawPrint],
-  ["Applications", "/dashboard/applications", FileCheck2],
-  ["Buyers", "/dashboard/buyers", Users],
-  ["Payments", "/dashboard/payments", CreditCard],
-  ["Documents", "/dashboard/documents", FileText],
-  ["Transportation", "/dashboard/transportation", Route],
-  ["Automation", "/dashboard/automation", Send],
-  ["Website", "/dashboard/website", Globe2],
-  ["Settings", "/dashboard/settings", Settings],
-] as const;
+type Tone = "gold" | "green" | "blue" | "red" | "neutral";
 
 const quickActions = [
-  ["Add Dog", "/dashboard/dogs/new", Dog],
-  ["Breeding Plan", "/dashboard/breeding-program/new", HeartPulse],
-  ["Create Litter", "/dashboard/litters/new", Baby],
-  ["Add Puppy", "/dashboard/puppies/new", PawPrint],
-  ["Add Buyer", "/dashboard/buyers/new", Users],
-  ["Log Payment", "/dashboard/payments/new", CreditCard],
+  ["Add Dog", "/dashboard/dogs/new", Dog, "Open roster controls"],
+  ["Plan Breeding", "/dashboard/breeding-program/new", HeartPulse, "Launch pairing engine"],
+  ["Record Litter", "/dashboard/litters/new", ClipboardList, "Manage litter records"],
+  ["Add Puppy", "/dashboard/puppies/new", PawPrint, "Open puppy pipeline"],
+  ["Log Payment", "/dashboard/payments/new", CreditCard, "Update buyer account"],
 ] as const;
 
 export default async function DashboardPage() {
   const live = await getDashboardData();
 
-  const primaryMetrics = [
-    ["Available puppies", `${live.counts.availablePuppies}/${live.counts.puppies}`, "ready or coming soon", PawPrint, "gold"],
-    ["Buyer pipeline", String(live.counts.buyers), `${live.counts.applications} pending apps`, Users, "green"],
-    ["Open balances", `$${live.money.openBalances.toLocaleString()}`, `${live.money.dueSoon} due · ${live.money.overdue} overdue`, CreditCard, "rose"],
-    ["Program alerts", String(live.counts.alertsOpen), `${live.counts.documentsPending} document flags`, AlertTriangle, "sage"],
+  const topMetrics = [
+    ["Active Dogs", live.counts.dogs, `${live.counts.dogs} roster records`, ratio(live.counts.dogs, Math.max(live.counts.dogs, 1)), PawPrint, "gold"],
+    ["Active Pairings", live.counts.breedings + live.counts.pregnancies, `${live.counts.breedings} breeding records`, ratio(live.counts.breedings + live.counts.pregnancies, Math.max(live.counts.breedings + live.counts.pregnancies, 1)), HeartPulse, "blue"],
+    ["Litters in Progress", live.counts.litters, `${live.counts.litters} litter records`, ratio(live.counts.litters, Math.max(live.counts.litters, 1)), Baby, "green"],
+    ["Puppies", live.counts.puppies, `${live.counts.puppies} puppy records`, ratio(live.counts.puppies, Math.max(live.counts.puppies, 1)), Users, "gold"],
   ] as const;
 
-  const lifecycle = [
-    ["Dogs", "/dashboard/dogs", Dog, "Foundation", live.counts.dogs, "Manage parents, health, genetics"],
-    ["Breedings", "/dashboard/breeding-program", HeartPulse, "Plans", live.counts.breedings + live.counts.pregnancies, "Pairings and pregnancies"],
-    ["Litters", "/dashboard/litters", Baby, "Whelping", live.counts.litters, "Birth records and milestones"],
-    ["Puppies", "/dashboard/puppies", PawPrint, "Inventory", live.counts.puppies, "Availability and reservations"],
-    ["Buyers", "/dashboard/buyers", Users, "CRM", live.counts.buyers, "Applications and approvals"],
-    ["Payments", "/dashboard/payments", CreditCard, "Money", `$${live.money.openBalances.toLocaleString()}`, "Deposits and balances"],
-    ["Delivery", "/dashboard/transportation", Truck, "Transport", live.counts.transportation, "Pickup and delivery plans"],
-  ] as const;
+  const feed = [
+    ...live.events.map((event) => ({ id: `event-${event.title}`, title: event.title, detail: `${event.tag} activity is recorded in your program timeline.`, date: event.date, category: event.tag, tone: "blue" as Tone })),
+    ...live.tasks.map((task) => ({ id: `task-${task.title}`, title: task.title, detail: task.detail, date: null, category: task.tag, tone: task.priority === "urgent" ? "red" as Tone : "gold" as Tone })),
+  ];
 
-  const onboarding = [
-    ["Dog", live.activation.hasDog],
-    ["Breeding", live.activation.hasBreeding],
-    ["Puppy", live.activation.hasPuppy],
-    ["Buyer", live.activation.hasBuyer],
-    ["Payment", live.activation.hasPayment],
-  ] as const;
-
-  const completed = onboarding.filter((item) => item[1]).length;
-  const taskPreview = live.tasks.length ? live.tasks.slice(0, 3) : [{ title: "Build your first workflow", detail: "Add a dog record to unlock live program intelligence.", tag: "Setup", priority: "normal" }];
-  const alertPreview = live.alerts.length ? live.alerts.slice(0, 2) : [{ title: "No active red flags", detail: "Alerts will appear here when payments, documents, or breeding tasks need attention.", severity: "info" }];
-  const eventPreview = live.events.length ? live.events.slice(0, 3) : [{ title: "No upcoming events", date: "Upcoming", tag: "Calendar" }];
+  const displayFeed = feed.length ? feed.slice(0, 7) : [{ id: "guide-roster", title: "No recent activity yet. Your program updates will appear here.", detail: "Breeding scheduled, ovulation confirmed, litter records, puppy status changes, and payments will appear here.", date: null, category: "roster", tone: "gold" as Tone }];
+  const actions = live.tasks.length ? live.tasks.slice(0, 6).map((task) => ({ id: task.title, title: task.title, detail: task.detail, due: task.tag, tone: task.priority === "urgent" ? "red" as Tone : "gold" as Tone })) : [{ id: "priority-dog", title: "No active tasks. Create or update a breeding plan to begin.", detail: "Tasks like confirming the breeding window, recording ovulation, and preparing whelping will appear here.", due: "ready", tone: "gold" as Tone }];
+  const readiness = buildReadiness(live);
+  const onboarding = [["Dog", live.activation.hasDog], ["Breeding", live.activation.hasBreeding], ["Puppy", live.activation.hasPuppy], ["Buyer", live.activation.hasBuyer], ["Payment", live.activation.hasPayment]] as const;
 
   return (
-    <main className="min-h-screen bg-[#F7F5EF] text-[#1C2B39]">
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;700;800&display=swap'); body{font-family:'DM Sans',sans-serif;background:#F7F5EF}.font-display{font-family:'Fraunces',serif}`}</style>
-      <div className="flex min-h-screen">
-        <aside className="hidden w-[292px] shrink-0 border-r border-[#DDD6C8] bg-[#FBFAF6] px-4 py-4 xl:block">
-          <a href="/dashboard" className="flex items-center gap-3 rounded-[1.5rem] border border-[#DDD6C8] bg-white p-3 shadow-sm shadow-[#315842]/5">
-            <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-[#315842] text-white shadow-lg shadow-[#315842]/15">
-              <PawPrint className="h-6 w-6" />
-              <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#C7A866]" />
-            </div>
-            <div>
-              <p className="font-display text-xl font-black leading-none">MyDogPortal</p>
-              <p className="mt-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#7B756A]">Command Center</p>
-            </div>
-          </a>
+    <div className="px-5 py-8 lg:px-8">
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=DM+Sans:wght@400;500;700;800&display=swap'); body{font-family:'DM Sans',sans-serif;background:#F4F0E7}.font-display{font-family:'Fraunces',serif}`}</style>
+      <WorkspaceHeader eyebrow="Command center" title="Dashboard" description="Overview of your breeding program, active work, buyer pipeline, and upcoming activity." />
 
-          <div className="mt-4 rounded-[1.5rem] border border-[#DDD6C8] bg-[#ECEBE3] p-4">
-            <div className="flex gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-[#315842]"><ShieldCheck className="h-5 w-5" /></div>
-              <div>
-                <p className="text-sm font-black">Morning command check</p>
-                <p className="mt-1 text-xs leading-5 text-[#5C6C72]">{live.organizationName}</p>
+      <Panel className="mt-8 overflow-hidden p-0" title="Program Status" eyebrow="Live totals">
+        <div className="grid gap-px bg-[#E2D8C8] md:grid-cols-4">
+          {topMetrics.map(([label, value, detail, progress, Icon, tone]) => (
+            <TopMetric key={label} icon={<Icon className="size-5" />} label={label} value={value} detail={detail} progress={progress} tone={tone} />
+          ))}
+        </div>
+      </Panel>
+
+      <div className="mt-5 grid gap-5 2xl:grid-cols-[1.1fr_1fr_360px]">
+        <Panel className="p-5" title="Operational Feed" eyebrow="Program activity">
+          <div className="relative">
+            <div className="absolute bottom-4 left-[15px] top-4 w-px bg-gradient-to-b from-[#C7A866] via-[#E2D8C8] to-transparent" />
+            {displayFeed.map((item, index) => <FeedRow key={item.id} item={item} featured={index === 0} />)}
+          </div>
+        </Panel>
+
+        <Panel className="p-5" title="Program Health" eyebrow="Readiness index">
+          <div className="grid gap-5 lg:grid-cols-[180px_1fr] 2xl:grid-cols-1">
+            <div className="flex items-center justify-center">
+              <div className="flex size-44 flex-col items-center justify-center rounded-full border border-[#C7A866]/30 bg-[radial-gradient(circle_at_50%_20%,rgba(199,168,102,0.20),transparent_55%),#FBFAF6] shadow-[0_0_52px_rgba(49,88,66,0.10)]">
+                <p className="text-5xl font-black tracking-tight text-[#172638]">{readiness.score}%</p>
+                <p className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-[#8A8173]">health</p>
               </div>
+            </div>
+            <div className="space-y-4">
+              {readiness.breakdown.map((item) => <HealthBar key={item.label} label={item.label} value={item.value} detail={item.detail} />)}
             </div>
           </div>
+        </Panel>
 
-          <nav className="mt-4 space-y-1">
-            {navItems.map(([label, href, Icon, active]) => (
-              <a key={label} href={href} className={`group flex items-center justify-between rounded-2xl px-4 py-2.5 text-sm font-black transition ${active ? "bg-[#315842] text-white shadow-md shadow-[#315842]/15" : "text-[#52616B] hover:bg-white hover:text-[#315842]"}`}>
-                <span className="flex items-center gap-3"><Icon className="h-4 w-4" />{label}</span>
-                {active ? <span className="h-1.5 w-1.5 rounded-full bg-[#D9BC7B]" /> : null}
-              </a>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="flex-1 overflow-hidden">
-          <header className="sticky top-0 z-30 border-b border-[#DDD6C8] bg-[#F7F5EF]/90 backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-7">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#B08A46]">Daily breeder command center</p>
-                <h1 className="font-display text-4xl font-black leading-none md:text-5xl">Dashboard</h1>
-              </div>
-              <div className="hidden min-w-[360px] items-center gap-2 rounded-full border border-[#DDD6C8] bg-white px-4 py-2.5 shadow-sm lg:flex">
-                <Search className="h-4 w-4 text-[#7A6A55]" />
-                <input className="w-full bg-transparent text-sm outline-none placeholder:text-[#9C9588]" placeholder="Search dog, litter, buyer, contract, payment..." />
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-[#DDD6C8] bg-white shadow-sm"><Bell className="h-5 w-5 text-[#315842]" /></button>
-                <a href="/dashboard/settings" className="rounded-2xl border border-[#DDD6C8] bg-white px-5 py-2.5 text-sm font-black text-[#315842] shadow-sm">Settings</a>
-              </div>
-            </div>
-          </header>
-
-          <div className="px-4 py-5 md:px-7">
-            <section className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_390px]">
-              <div className="space-y-5">
-                <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_355px]">
-                  <div className="relative overflow-hidden rounded-[2rem] border border-[#DDD6C8] bg-white p-6 shadow-xl shadow-[#315842]/7">
-                    <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#C7A866]/18 blur-3xl" />
-                    <div className="absolute -bottom-20 left-32 h-52 w-52 rounded-full bg-[#315842]/8 blur-3xl" />
-                    <div className="relative">
-                      <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#DDD6C8] bg-[#F3EFE5] px-4 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-[#B08A46]"><Sparkles className="h-4 w-4" />Morning briefing</div>
-                      <h2 className="font-display max-w-4xl text-4xl font-black leading-[1.02] md:text-6xl">Run today from one calm command center.</h2>
-                      <p className="mt-4 max-w-3xl text-base leading-7 text-[#52616B]">A focused view of your program, buyers, money, documents, and go-home logistics.</p>
-                      <div className="mt-5 grid gap-3 md:grid-cols-3">
-                        <BriefingStat label="Due soon" value={live.money.dueSoon} detail="payments" />
-                        <BriefingStat label="Pending" value={live.counts.documentsPending} detail="documents" />
-                        <BriefingStat label="Upcoming" value={live.counts.eventsUpcoming} detail="events" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[2rem] border border-[#DDD6C8] bg-[#315842] p-5 text-white shadow-xl shadow-[#315842]/15">
-                    <div className="flex items-center gap-3">
-                      <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-white/12 text-white"><Bot className="h-6 w-6" /><span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-[#315842] bg-[#D9BC7B]" /></div>
-                      <div><p className="font-display text-2xl font-black leading-none">Breeder Buddy AI</p><p className="mt-1 text-[11px] font-black uppercase tracking-[0.16em] text-[#D9BC7B]">Concierge intelligence</p></div>
-                    </div>
-                    <div className="mt-5 rounded-[1.25rem] border border-white/12 bg-white/8 p-4">
-                      <p className="text-sm font-bold leading-7 text-white/82">Ask who owes balances, which agreements are unsigned, or what buyer action needs attention next.</p>
-                    </div>
-                    <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#315842] shadow-lg shadow-black/10">Ask Breeder Buddy AI<WandSparkles className="h-4 w-4" /></button>
-                  </div>
-                </section>
-
-                <section className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-                  {primaryMetrics.map(([label, value, detail, Icon, tone]) => <MetricCard key={label} label={label} value={value} detail={detail} icon={Icon} tone={tone} />)}
-                </section>
-
-                <section className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
-                  <Card><SectionHeader eyebrow="Today’s priorities" title="Fix these first" description="Live tasks and program actions surfaced for the day." />{taskPreview.map((task) => <CompactRow key={task.title} title={task.title} detail={task.detail} tone="green" />)}</Card>
-                  <Card><SectionHeader eyebrow="Red flags" title="Needs attention" description="Alerts, unsigned docs, overdue balances, and program warnings." />{alertPreview.map((alert) => <CompactRow key={alert.title} title={alert.title} detail={alert.detail} tone="red" />)}</Card>
-                </section>
-
-                <section className="rounded-[1.75rem] border border-[#DDD6C8] bg-[#F9F8F4] p-4 shadow-sm">
-                  <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                    <div><p className="text-[11px] font-black uppercase tracking-[0.22em] text-[#B08A46]">Operating lifecycle</p><h2 className="font-display mt-1 text-2xl font-black">Dogs → Breedings → Litters → Puppies → Buyers → Payments → Delivery</h2></div>
-                    <p className="max-w-md text-sm leading-6 text-[#52616B]">Open the module, add records, and the command center becomes live.</p>
-                  </div>
-                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
-                    {lifecycle.map(([label, href, Icon, detail, value, subtext], index) => <ModuleTile key={label} index={index + 1} label={label} href={href} icon={Icon} detail={detail} value={value} subtext={subtext} />)}
-                  </div>
-                </section>
-              </div>
-
-              <aside className="space-y-5">
-                <Card>
-                  <SectionHeader eyebrow="Quick commands" title="Add the next record" description="These shortcuts will become the daily input engine." />
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 2xl:grid-cols-1">
-                    {quickActions.map(([label, href, Icon]) => <a key={label} href={href} className="flex items-center justify-between rounded-2xl border border-[#E2DBCE] bg-[#FBFAF6] px-3 py-3 text-sm font-black text-[#315842] transition hover:-translate-y-0.5 hover:bg-white hover:shadow-md"><span className="flex items-center gap-2"><Icon className="h-4 w-4 text-[#B08A46]" />{label}</span><Plus className="h-4 w-4" /></a>)}
-                  </div>
-                </Card>
-
-                <Card>
-                  <SectionHeader eyebrow="Activation" title="Workspace setup" description="Add records to turn demo zeros into live intelligence." />
-                  <div className="mt-4 rounded-[1.25rem] bg-[#315842] p-4 text-white">
-                    <div className="flex items-end justify-between"><div><p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#D9BC7B]">Progress</p><p className="font-display text-4xl font-black">{completed}/{onboarding.length}</p></div><BadgeCheck className="h-9 w-9 text-[#D9BC7B]" /></div>
-                    <div className="mt-3 h-2.5 rounded-full bg-white/15"><div className="h-full rounded-full bg-[#D9BC7B]" style={{ width: `${(completed / onboarding.length) * 100}%` }} /></div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">{onboarding.map(([label, done]) => <span key={label} className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-black ${done ? "border-[#BFD0C4] bg-[#EEF4EC] text-[#315842]" : "border-[#DDD6C8] bg-white text-[#7A6A55]"}`}>{done ? <CheckCircle2 className="h-4 w-4" /> : <TimerReset className="h-4 w-4" />}{label}</span>)}</div>
-                </Card>
-
-                <Card><SectionHeader eyebrow="Calendar" title="Upcoming" description="Merged breeder events and breeding calendar." />{eventPreview.map((event) => <div key={event.title} className="mt-3 rounded-2xl border border-[#DDD6C8] bg-[#FBFAF6] p-3"><div className="flex items-center gap-3"><CalendarClock className="h-5 w-5 text-[#B08A46]" /><div><p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#B08A46]">{event.date} · {event.tag}</p><p className="text-sm font-black">{event.title}</p></div></div></div>)}</Card>
-              </aside>
-            </section>
+        <Panel className="p-5" title="Tasks & Priorities" eyebrow="Current work">
+          <div className="space-y-3">
+            {actions.map((action) => <PriorityAction key={action.id} action={action} />)}
           </div>
-        </section>
+          <div className="mt-5 rounded-xl border border-[#D8CFBF] bg-[#F8F5EE] p-4">
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#B08A46]">Activation</p>
+            <div className="mt-3 flex items-end justify-between">
+              <p className="font-display text-4xl font-black text-[#315842]">{onboarding.filter((item) => item[1]).length}/{onboarding.length}</p>
+              <BadgeCheck className="size-8 text-[#C7A866]" />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">{onboarding.map(([label, done]) => <span key={label} className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-black ${done ? "border-[#BFD0C4] bg-[#EEF4EC] text-[#315842]" : "border-[#DDD6C8] bg-white text-[#7A6A55]"}`}>{done ? <CheckCircle2 className="size-4" /> : <TimerReset className="size-4" />}{label}</span>)}</div>
+          </div>
+        </Panel>
       </div>
-    </main>
+
+      <Panel className="mt-5 p-5" title="Quick Actions" eyebrow="Primary workflows">
+        <div className="grid gap-3 md:grid-cols-5">
+          {quickActions.map(([label, href, Icon, detail]) => <QuickAction key={label} href={href} icon={<Icon className="size-4" />} label={label} detail={detail} />)}
+        </div>
+      </Panel>
+    </div>
   );
 }
 
-function BriefingStat({ label, value, detail }: { label: string; value: number; detail: string }) {
-  return <div className="rounded-2xl border border-[#DDD6C8] bg-[#FBFAF6] px-4 py-3"><p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#B08A46]">{label}</p><p className="font-display text-3xl font-black">{value}</p><p className="text-xs font-bold text-[#52616B]">{detail}</p></div>;
-}
-
-function MetricCard({ label, value, detail, icon: Icon, tone }: { label: string; value: string; detail: string; icon: typeof PawPrint; tone: string }) {
-  return <div className={`rounded-[1.5rem] border p-4 shadow-sm ${metricTone(tone)}`}><div className="flex items-start justify-between"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/70 text-[#315842]"><Icon className="h-5 w-5" /></div>{tone === "rose" ? <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-black text-[#A03625]">Watch</span> : null}</div><p className="mt-4 text-[11px] font-black uppercase tracking-[0.18em] text-[#7A6A55]">{label}</p><p className="font-display mt-1 text-3xl font-black">{value}</p><p className="mt-1 text-xs font-bold text-[#52616B]">{detail}</p></div>;
-}
-
-function ModuleTile({ index, label, href, icon: Icon, detail, value, subtext }: { index: number; label: string; href: string; icon: typeof PawPrint; detail: string; value: string | number; subtext: string }) {
-  return <a href={href} className="group rounded-2xl border border-[#DDD6C8] bg-white p-3 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#315842]/8"><div className="mb-3 flex items-center justify-between"><div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EEF1E8] text-[#315842]"><Icon className="h-5 w-5" /></div><span className="font-display text-2xl font-black text-[#C7A866]">{String(index).padStart(2, "0")}</span></div><p className="font-black">{label}</p><p className="text-xs text-[#66757A]">{detail}</p><p className="mt-2 text-lg font-black text-[#315842]">{value}</p><div className="mt-3 flex items-center justify-between border-t border-[#EEE7DA] pt-3 text-xs font-black text-[#52616B]"><span>{subtext}</span><ChevronRight className="h-4 w-4 text-[#B08A46] transition group-hover:translate-x-0.5" /></div></a>;
-}
-
-function Card({ children }: { children: ReactNode }) { return <div className="rounded-[1.75rem] border border-[#DDD6C8] bg-white p-5 shadow-sm shadow-[#315842]/5">{children}</div>; }
-function SectionHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) { return <div><p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#B08A46]">{eyebrow}</p><h2 className="font-display mt-1 text-2xl font-black">{title}</h2><p className="mt-1 text-sm leading-6 text-[#52616B]">{description}</p></div>; }
-function CompactRow({ title, detail, tone }: { title: string; detail: string; tone: "green" | "red" }) { return <div className="mt-3 rounded-2xl border border-[#DDD6C8] bg-[#FBFAF6] p-3"><div className="flex gap-3"><div className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${tone === "red" ? "bg-[#A03625]" : "bg-[#315842]"}`} /><div><p className="font-black">{title}</p><p className="mt-0.5 text-sm leading-6 text-[#52616B]">{detail}</p></div></div></div>; }
-function metricTone(tone: string) { if (tone === "rose") return "border-[#EBCBC4] bg-[#FFF7F4]"; if (tone === "gold") return "border-[#E4D5B8] bg-[#FFF9EA]"; if (tone === "sage") return "border-[#C9D7CC] bg-[#F1F6EF]"; return "border-[#C9D7CC] bg-[#F4F8F1]"; }
+function WorkspaceHeader({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) { return <div><p className="text-[11px] font-black uppercase tracking-[0.28em] text-[#B08A46]">{eyebrow}</p><h1 className="mt-2 text-4xl font-black tracking-tight text-[#172638] md:text-5xl">{title}</h1><p className="mt-3 max-w-3xl text-sm leading-6 text-[#5C6872]">{description}</p></div>; }
+function Panel({ children, title, eyebrow, className = "" }: { children: ReactNode; title: string; eyebrow: string; className?: string }) { return <section className={`rounded-lg border border-[#D8CFBF] bg-white shadow-[0_18px_48px_rgba(49,88,66,0.08)] ${className}`}><div className="border-b border-[#E2D8C8] px-5 py-4"><p className="text-[11px] font-black uppercase tracking-[0.24em] text-[#B08A46]">{eyebrow}</p><h2 className="mt-1 text-base font-black text-[#172638]">{title}</h2></div>{children}</section>; }
+function TopMetric({ icon, label, value, detail, progress, tone }: { icon: ReactNode; label: string; value: number; detail: string; progress: number; tone: Tone }) { const accent = toneClasses(tone); return <div className="bg-[#FBFAF6] p-5"><div className="flex items-start justify-between gap-3"><span className={`flex size-10 items-center justify-center rounded-md border ${accent.border} ${accent.bg} ${accent.text}`}>{icon}</span><span className="mt-1 text-xs font-black uppercase tracking-[0.16em] text-[#8A8173]">{label}</span></div><p className="mt-5 text-4xl font-black tracking-tight text-[#172638]">{value}</p><p className="mt-1 truncate text-sm text-[#5C6872]">{detail}</p><ProgressLine value={progress} tone={tone} className="mt-4" /></div>; }
+function FeedRow({ item, featured }: { item: { title: string; detail: string; date: string | null; category: string; tone: Tone }; featured: boolean }) { const accent = toneClasses(item.tone); return <div className="relative grid gap-3 py-3 pl-11 xl:grid-cols-[1fr_120px] xl:items-center"><span className={`absolute left-0 top-4 z-10 flex size-8 items-center justify-center rounded-full border ${accent.border} ${accent.bg} ${accent.text}`}>{featured ? <Sparkles className="size-4" /> : <Timer className="size-4" />}</span><div className={featured ? "rounded-md border border-[#C7A866]/25 bg-[#FFF7E6] p-3" : ""}><div className="flex flex-wrap items-center gap-2"><p className="font-black text-[#172638]">{item.title}</p><StatusPill tone={item.tone}>{item.category}</StatusPill></div><p className="mt-1 text-sm leading-6 text-[#5C6872]">{item.detail}</p></div><p className="text-sm text-[#8A8173] xl:text-right">{item.date ?? "Set date"}</p></div>; }
+function HealthBar({ label, value, detail }: { label: string; value: number; detail: string }) { const tone = value >= 0.78 ? "green" : value >= 0.48 ? "gold" : "blue"; return <div><div className="mb-2 flex items-center justify-between gap-4"><div><p className="text-sm font-black text-[#172638]">{label}</p><p className="text-xs text-[#66757A]">{detail}</p></div><p className="font-mono text-xs text-[#B08A46]">{Math.round(value * 100)}%</p></div><ProgressLine value={value} tone={tone} /></div>; }
+function PriorityAction({ action }: { action: { title: string; detail: string; due: string; tone: Tone } }) { const accent = toneClasses(action.tone); return <div className="rounded-md border border-[#E2D8C8] bg-[#FBFAF6] p-3"><div className="flex items-start gap-3"><span className={`mt-1 size-2 rounded-full ${accent.solid}`} /><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><p className="font-black text-[#172638]">{action.title}</p><StatusPill tone={action.tone}>{action.due}</StatusPill></div><p className="mt-1 text-sm leading-5 text-[#66757A]">{action.detail}</p></div></div></div>; }
+function QuickAction({ href, icon, label, detail }: { href: string; icon: ReactNode; label: string; detail: string }) { return <Link href={href} className="group rounded-md border border-[#C7A866]/25 bg-[#FFF7E6] p-4 transition hover:border-[#C7A866]/50 hover:bg-[#FFF2D2]"><div className="flex items-center justify-between gap-3"><span className="flex size-9 items-center justify-center rounded-md border border-[#C7A866]/30 bg-white text-[#B08A46]">{icon}</span><ArrowRight className="size-4 text-[#B08A46] transition group-hover:translate-x-0.5" /></div><p className="mt-4 font-black text-[#172638]">{label}</p><p className="mt-1 text-sm text-[#66757A]">{detail}</p></Link>; }
+function StatusPill({ children, tone }: { children: ReactNode; tone: Tone }) { const accent = toneClasses(tone); return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] ${accent.border} ${accent.bg} ${accent.text}`}>{children}</span>; }
+function ProgressLine({ value, tone, className }: { value: number; tone: Tone; className?: string }) { const accent = toneClasses(tone); return <div className={className}><div className="h-1.5 overflow-hidden rounded-full bg-[#E2D8C8]"><div className={`h-full rounded-full ${accent.solid}`} style={{ width: `${Math.max(8, Math.round(clamp(value) * 100))}%` }} /></div></div>; }
+function buildReadiness(live: Awaited<ReturnType<typeof getDashboardData>>) { const breakdown = [{ label: "Roster readiness", value: ratio(live.counts.dogs, Math.max(live.counts.dogs, 1)), detail: `${live.counts.dogs} active dogs` }, { label: "Buyer pipeline", value: ratio(live.counts.buyers, Math.max(live.counts.buyers + 1, 1)), detail: `${live.counts.buyers} buyer records` }, { label: "Money control", value: live.money.overdue > 0 ? 0.35 : 0.86, detail: `${live.money.overdue} overdue balances` }, { label: "Document control", value: live.counts.documentsPending > 0 ? 0.45 : 0.9, detail: `${live.counts.documentsPending} pending documents` }, { label: "Calendar control", value: ratio(live.counts.eventsUpcoming, Math.max(live.counts.eventsUpcoming + 1, 1)), detail: `${live.counts.eventsUpcoming} upcoming events` }]; const score = Math.round((breakdown.reduce((sum, item) => sum + item.value, 0) / breakdown.length) * 100); return { score, breakdown }; }
+function ratio(value: number, total: number) { return total <= 0 ? 0 : clamp(value / total); }
+function clamp(value: number) { return Math.max(0, Math.min(1, value)); }
+function toneClasses(tone: Tone) { return { gold: { bg: "bg-[#FFF7E6]", border: "border-[#C7A866]/35", text: "text-[#8A6422]", solid: "bg-[#C7A866]" }, green: { bg: "bg-[#EEF4EC]", border: "border-[#AFC7B4]", text: "text-[#315842]", solid: "bg-[#315842]" }, blue: { bg: "bg-[#EEF4F7]", border: "border-[#B8CDD6]", text: "text-[#31556B]", solid: "bg-[#4F8195]" }, red: { bg: "bg-[#FFF2EE]", border: "border-[#E6B9AA]", text: "text-[#A03625]", solid: "bg-[#A03625]" }, neutral: { bg: "bg-[#F8F5EE]", border: "border-[#D8CFBF]", text: "text-[#5C6872]", solid: "bg-[#8A8173]" } }[tone]; }
